@@ -3,16 +3,32 @@ package jaws;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.*;
+import java.security.*;
 
 public class JaWS {
-    public static final int PORT=80;
+    public static final int PORT=40506;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+        //Utilities
+        
+        final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        
+        Base64.Encoder b64encoder = Base64.getEncoder();
+
+        MessageDigest sha1digester = null;
+        try {
+            sha1digester = MessageDigest.getInstance("SHA-1");
+        }
+        catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
         // list of all connections
         ArrayList<Connection> connections = new ArrayList();
 
+        final ServerSocket socketServer = new ServerSocket(PORT);
 
         // ShutdownHook, catches any interrupt signal and closes all threads
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -25,6 +41,8 @@ public class JaWS {
                         c.interrupt();
                     }
 
+                    if (socketServer != null) socketServer.close();
+
                     System.out.println("All done. Bye!");
 
                 } catch(Exception e) {
@@ -34,11 +52,9 @@ public class JaWS {
             }
         }));
 
+        System.out.println("Server now listening on port " + PORT);
         while(true) {
             try {
-                ServerSocket socketServer = new ServerSocket(PORT);
-                System.out.println("Server now listening on port " + PORT);
-
                 // Waiting for connections
                 Socket socket = socketServer.accept();
 				System.out.println("Incomming connection ...");
@@ -55,22 +71,84 @@ public class JaWS {
                     // Adding httpReq to string array
                     String s;
                     while((s=in.readLine()) != null) {
-                        System.out.println(s);
                         if(s.isEmpty()) {
                             break;
                         }
                         httpReq.add(s);
                     }
-                    // todo: check for websocket headers and stuff
-                    // send http response
 
+                    String upgrade = null;
+                    String connection = null;
+                    String wsKey = null;
+                    String[] wsProtocol = null;
+                    int wsVersion = -1;
+                    for (String line : httpReq) {
+                        System.out.println(line);
 
-                    // check for websocket, start new connection and add to thread array
-                    //if(websocket) {
-                        Connection connection = new Connection(socket);
-                        connections.add(connection);
-                        connection.start();
-                    //}
+                        String[] parts = line.split(": ");
+                        if (parts.length == 1) {
+                            // Should we check the GET ... line here?    
+                        }
+                        else {
+                            String key = parts[0];
+                            String val = parts[1];
+
+                            if(key.equalsIgnoreCase("upgrade")) {
+                                upgrade = val;
+                            }
+                            else if(key.equalsIgnoreCase("connection")) {
+                                connection = val;
+                            }
+                            else if(key.equalsIgnoreCase("sec-websocket-key")) {
+                                wsKey = val; 
+                            }
+                            else if(key.equalsIgnoreCase("sec-websocket-protocol")) {
+                                wsProtocol = val.split(",");
+                            }
+                            else if(key.equalsIgnoreCase("sec-websocket-version")) {
+                                wsVersion = Integer.parseInt(val);
+                            }
+                        }
+                    }
+
+                    boolean websocket = false;
+                    if (
+                            upgrade != null && upgrade.equalsIgnoreCase("websocket") &&
+                            connection != null && connection.equalsIgnoreCase("upgrade") &&
+                            wsKey != null)
+                    {
+                        websocket = true;
+                        // Send handshake response
+                        
+
+                        String acceptKey = b64encoder.encodeToString(
+                                sha1digester.digest((wsKey+GUID).getBytes()));
+                        
+                        out.write(
+                                "HTTP/1.1 101 Switching Protocols\r\n"+
+                                "Upgrade: websocket\r\n"+
+                                "Connection: Upgrade\r\n"+
+                                "Sec-WebSocket-Accept: "+acceptKey+
+                                "\r\n\r\n");
+                        out.flush();
+
+                        System.out.println("Handshake sent");
+                    }
+                    else {
+                        out.write(
+                                "HTTPS/1.1 503 Connection Refused\r\n"+
+                                "\r\n\r\n"
+                                );
+                        out.flush();
+
+                        System.out.println("Connection refused");
+                    }
+
+                    if(websocket) {
+                        Connection con= new Connection(socket);
+                        connections.add(con);
+                        con.start();
+                    }
                 } catch(Exception e) {
                     e.printStackTrace();
                     System.out.println("IO error on socket creation");
