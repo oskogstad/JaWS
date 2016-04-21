@@ -44,17 +44,17 @@ public class Connection extends Thread {
 
             byte[] payload = new byte[payloadLen];
             input.read(payload, 0, payloadLen);
+
+            String message = new String(payload);
             if (maskBit) {
-                decode(payload, mask);
+                message = decode(payload, mask);
             }
             
-            String message = new String(payload, "UTF-8");
-
             System.out.println("--------------MESSAGE--------------");
             System.out.println("Fin: "+fin);
             System.out.println("Mask: "+maskBit);
-            System.out.println(payload);
-            System.out.println("--------------FIN--------------");
+            System.out.println(message);
+            System.out.println("----------------FIN----------------");
 
         }
         catch(IOException e) {
@@ -62,10 +62,12 @@ public class Connection extends Thread {
         }
     }
 
-    private void decode(byte[] payload, byte[] mask) {
+    private String decode(byte[] payload, byte[] mask) {
+        String decoded = "";
         for (int i=0; i<payload.length; i++) {
-            payload[i] = (byte)((int)payload[i] ^ (int)mask[i%4]);
+            decoded += (char)((int)payload[i] ^ (int)mask[i%4]);
         }
+        return decoded;
     }
 }
 
