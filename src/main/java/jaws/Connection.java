@@ -9,6 +9,25 @@ public class Connection extends Thread {
     final Socket socket;
     final Base64.Decoder b64decoder = Base64.getDecoder();
 
+    final static String[] opcodeNames = new String[] {
+        "continuation frame",
+        "text frame",
+        "binary frame",
+        "further non-control frame",
+        "further non-control frame",
+        "further non-control frame",
+        "further non-control frame",
+        "further non-control frame",
+        "connection close",
+        "ping",
+        "pong",
+        "further control frame",
+        "further control frame",
+        "further control frame",
+        "further control frame",
+        "further control frame",
+    };
+
     public Connection(Socket socket) {
         this.socket = socket;
     }
@@ -25,8 +44,9 @@ public class Connection extends Thread {
             byte[] header = new byte[2];
             input.read(header, 0, header.length);
 
-            boolean fin = (header[0]>>7) != 0;
+            boolean fin = ((int)header[0]&0x80) != 0;
             boolean maskBit = (((int)header[1])&0x80) != 0;
+            int opcode = (int)header[0]&0x0F;
 
             int payloadLen = ((int)header[1])&0x7F;
             if (payloadLen == 126) {
@@ -53,6 +73,7 @@ public class Connection extends Thread {
             System.out.println("--------------MESSAGE--------------");
             System.out.println("Fin: "+fin);
             System.out.println("Mask: "+maskBit);
+            System.out.println("Opcode: "+opcodeNames[opcode]);
             System.out.println(message);
             System.out.println("----------------FIN----------------");
 
