@@ -3,6 +3,7 @@ package jaws;
 import java.io.*;
 import java.net.*;
 import java.util.Base64;
+import java.nio.ByteBuffer;
 
 public class Connection extends Thread {
 
@@ -48,12 +49,20 @@ public class Connection extends Thread {
             boolean maskBit = (((int)header[1])&0x80) != 0;
             int opcode = (int)header[0]&0x0F;
 
-            int payloadLen = ((int)header[1])&0x7F;
+            long payloadLen = ((int)header[1])&0x7F;
             if (payloadLen == 126) {
                 // Read the next 2 bytes as payload length
+                byte[] b = new byte[2];
+                input.read(b, 0, b.length);
+                ByteBuffer buffer = ByteBuffer.wrap(b);
+                payloadLen = buffer.getShort();
             }
             else if (payloadLen == 127) {
                 // Read the next 8 bytes as payload length
+                byte[] b = new byte[8];
+                input.read(b, 0, b.length);
+                ByteBuffer buffer = ByteBuffer.wrap(b);
+                payloadLen = buffer.getLong();
             }
 
             byte[] mask = new byte[4];
@@ -62,8 +71,9 @@ public class Connection extends Thread {
                 input.read(mask, 0, mask.length); 
             }
 
-            byte[] payload = new byte[payloadLen];
-            input.read(payload, 0, payloadLen);
+            // This will fail for messages of size bigger than int max val.
+            byte[] payload = new byte[(int)payloadLen];
+            input.read(payload, 0, (int)payloadLen); 
 
             String message = new String(payload);
             if (maskBit) {
