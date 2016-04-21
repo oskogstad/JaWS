@@ -7,15 +7,15 @@ public class Connection extends Thread {
 
     final Socket socket;
 
-    public Connenction(Socket socket) {
+    public Connection(Socket socket) {
         this.socket = socket;
     }
 
     @Override
     public void run() {
         try(
-                DataInputStream input = new DataInputStream(socket.getInputStream);
-                DataOutputStream output = new DataOutputStream(socket.getOutputStream);
+                DataInputStream input = new DataInputStream(socket.getInputStream());
+                DataOutputStream output = new DataOutputStream(socket.getOutputStream());
            )
         {
             byte[] header = new byte[2];
