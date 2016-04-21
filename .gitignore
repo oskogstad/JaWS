@@ -1,0 +1,6 @@
+*.class
+*.jar
+
+# mac stuff
+.DS_Store
+._*
