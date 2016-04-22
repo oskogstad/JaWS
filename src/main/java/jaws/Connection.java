@@ -89,7 +89,7 @@ public class Connection extends Thread {
 
             byte[] out = new byte[2];
             out[0] |= (0x80);
-            out[0] |= (0x1);
+            out[0] |= opcode;
             System.out.println("PayloadLen: "+payloadLen);
             out[1] |= payloadLen;
 
@@ -97,6 +97,7 @@ public class Connection extends Thread {
             System.out.println("out[1]: "+out[1]);
             output.write(out[0]);
             output.write(out[1]);
+            output.write(message.getBytes());
         }
         catch(IOException e) {
             e.printStackTrace();
