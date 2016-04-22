@@ -68,18 +68,18 @@ public class Connection extends Thread {
             byte[] mask = new byte[4];
 
             if (maskBit) {
-                input.read(mask, 0, mask.length); 
+                input.read(mask, 0, mask.length);
             }
 
             // This will fail for messages of size bigger than int max val.
             byte[] payload = new byte[(int)payloadLen];
-            input.read(payload, 0, (int)payloadLen); 
+            input.read(payload, 0, (int)payloadLen);
 
             String message = new String(payload);
             if (maskBit) {
                 message = decode(payload, mask);
             }
-            
+
             System.out.println("--------------MESSAGE--------------");
             System.out.println("Fin: "+fin);
             System.out.println("Mask: "+maskBit);
@@ -87,6 +87,16 @@ public class Connection extends Thread {
             System.out.println(message);
             System.out.println("----------------FIN----------------");
 
+            byte[] out = new byte[2];
+            out[0] |= (0x80);
+            out[0] |= (0x1);
+            System.out.println("PayloadLen: "+payloadLen);
+            out[1] |= payloadLen;
+
+            System.out.println("out[0]: "+out[0]);
+            System.out.println("out[1]: "+out[1]);
+            output.write(out[0]);
+            output.write(out[1]);
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -101,4 +111,3 @@ public class Connection extends Thread {
         return decoded;
     }
 }
-

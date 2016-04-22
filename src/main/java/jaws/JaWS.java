@@ -12,9 +12,9 @@ public class JaWS {
     public static void main(String[] args) throws IOException {
 
         //Utilities
-        
+
         final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-        
+
         Base64.Encoder b64encoder = Base64.getEncoder();
 
         MessageDigest sha1digester = null;
@@ -87,20 +87,20 @@ public class JaWS {
 
                         String[] parts = line.split(": ");
                         if (parts.length == 1) {
-                            // Should we check the GET ... line here?    
+                            // Should we check the GET ... line here?
                         }
                         else {
                             String key = parts[0];
                             String val = parts[1];
 
-                            if(key.equalsIgnoreCase("upgrade")) {
+                            if(key.toLowerCase().contains("upgrade")) {
                                 upgrade = val;
                             }
                             else if(key.equalsIgnoreCase("connection")) {
                                 connection = val;
                             }
                             else if(key.equalsIgnoreCase("sec-websocket-key")) {
-                                wsKey = val; 
+                                wsKey = val;
                             }
                             else if(key.equalsIgnoreCase("sec-websocket-protocol")) {
                                 wsProtocol = val.split(",");
@@ -114,16 +114,16 @@ public class JaWS {
                     boolean websocket = false;
                     if (
                             upgrade != null && upgrade.equalsIgnoreCase("websocket") &&
-                            connection != null && connection.equalsIgnoreCase("upgrade") &&
+                            connection != null && connection.toLowerCase().contains("upgrade") &&
                             wsKey != null)
                     {
                         websocket = true;
                         // Send handshake response
-                        
+
 
                         String acceptKey = b64encoder.encodeToString(
                                 sha1digester.digest((wsKey+GUID).getBytes()));
-                        
+
                         out.write(
                                 "HTTP/1.1 101 Switching Protocols\r\n"+
                                 "Upgrade: websocket\r\n"+
