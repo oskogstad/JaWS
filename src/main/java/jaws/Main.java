@@ -23,7 +23,7 @@ public class Main implements WebSocketEventHandler {
     @Override
     public void onConnect(Connection con) {
 
-    }
+    } 
 
     @Override
     public void onDisconnect(Connection con) {

@@ -11,7 +11,6 @@ public class JaWS extends Thread {
     private final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     private ServerSocket SOCKET_SERVER;
 
-    private WebSocketEventHandler wsHandler;
     private Base64.Encoder b64encoder;
     private MessageDigest sha1digester;
     private ArrayList<Connection> connections;
@@ -20,7 +19,6 @@ public class JaWS extends Thread {
 
     public JaWS(int port) {
         this.PORT = port;
-        this.wsHandler = wsHandler;
 
         SOCKET_SERVER = null;
         try {
