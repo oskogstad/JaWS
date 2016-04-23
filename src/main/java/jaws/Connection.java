@@ -10,6 +10,8 @@ public class Connection extends Thread {
     final Socket socket;
     final Base64.Decoder b64decoder = Base64.getDecoder();
 
+    final JaWS jaws;
+
     final static String[] opcodeNames = new String[] {
         "continuation frame",
         "text frame",
@@ -29,7 +31,8 @@ public class Connection extends Thread {
         "further control frame",
     };
 
-    public Connection(Socket socket) {
+    public Connection(JaWS jaws, Socket socket) {
+        this.jaws = jaws;
         this.socket = socket;
     }
 
@@ -112,3 +115,4 @@ public class Connection extends Thread {
         return decoded;
     }
 }
+

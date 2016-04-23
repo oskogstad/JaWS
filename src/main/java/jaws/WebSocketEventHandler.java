@@ -1,6 +1,8 @@
 package jaws;
 
 public interface WebSocketEventHandler {
-    public void onMessage();
-    
+    public void onConnect(Connection con);
+    public void onMessage(Connection con, String message);
+    public void onDisconnect(Connection con);
 }
+

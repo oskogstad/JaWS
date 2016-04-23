@@ -3,21 +3,34 @@ import java.io.*;
 
 public class Main implements WebSocketEventHandler {
     public Main() {
-        try {
-            JaWS jaws = new JaWS(this, 40506);
-            jaws.start();
+        JaWS jaws = new JaWS(40506);
+        jaws.setEventHandler(this);
+        jaws.start();
 
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
+        // ShutdownHook, catches any interrupt signal and closes all threads
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                jaws.close();
+            }
+        }));
+    }
+
+    @Override
+    public void onMessage(Connection con, String message) {
+        System.out.println("overwritted");
+    }
+
+    @Override
+    public void onConnect(Connection con) {
+
+    }
+
+    @Override
+    public void onDisconnect(Connection con) {
+
     }
 
     public static void main(String[] args) {
         new Main();
-    }
-
-    @Override
-    public void onMessage() {
-        System.out.println("overwritted");
     }
 }

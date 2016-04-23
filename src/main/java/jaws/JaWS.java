@@ -9,17 +9,27 @@ import java.security.*;
 public class JaWS extends Thread {
     private final int PORT;
     private final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    private final ServerSocket SOCKET_SERVER;
+    private ServerSocket SOCKET_SERVER;
 
     private WebSocketEventHandler wsHandler;
     private Base64.Encoder b64encoder;
     private MessageDigest sha1digester;
     private ArrayList<Connection> connections;
 
-    public JaWS(WebSocketEventHandler wsHandler, int port) throws IOException {
+    private WebSocketEventHandler eventHandler;
+
+    public JaWS(int port) {
         this.PORT = port;
         this.wsHandler = wsHandler;
-        SOCKET_SERVER = new ServerSocket(PORT);
+
+        SOCKET_SERVER = null;
+        try {
+            SOCKET_SERVER = new ServerSocket(PORT);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
         connections = new ArrayList();
 
         // Utilities
@@ -31,23 +41,37 @@ public class JaWS extends Thread {
             e.printStackTrace();
         }
 
-        // ShutdownHook, catches any interrupt signal and closes all threads
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            public void run() {
-                try {
-                    // Close all threads
-                    System.out.println("Number of threads: " + connections.size());
-                    for (Connection c : connections) {
-                        c.interrupt();
-                    }
-                    if (SOCKET_SERVER != null) SOCKET_SERVER.close();
-                    System.out.println("All done. Bye!");
-                } catch(Exception e) {
-                    System.out.println("Thread shutdown failed ...");
-                    e.printStackTrace();
-                }
+    }
+
+    public synchronized void onMessage(Connection con, String message) {
+        if(eventHandler != null) {
+            eventHandler.onMessage(con, message);
+        }
+    }
+
+    public synchronized void onConnect(Connection con) {
+        if(eventHandler != null) {
+            eventHandler.onConnect(con);
+        }
+    }
+
+    public void onDisconnect(Connection con) {
+        if(eventHandler != null) {
+            eventHandler.onDisconnect(con);
+        }
+    }
+
+    public synchronized void close() {
+        try {
+            // Close all threads
+            for (Connection c : connections) {
+                c.interrupt();
             }
-        }));
+            if (SOCKET_SERVER != null) SOCKET_SERVER.close();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -112,15 +136,12 @@ public class JaWS extends Thread {
                         }
                     }
 
-                    boolean websocket = false;
                     if (
                             upgrade != null && upgrade.equalsIgnoreCase("websocket") &&
                             connection != null && connection.toLowerCase().contains("upgrade") &&
                             wsKey != null)
                     {
-                        websocket = true;
                         // Send handshake response
-
 
                         String acceptKey = b64encoder.encodeToString(
                                 sha1digester.digest((wsKey+GUID).getBytes()));
@@ -134,6 +155,14 @@ public class JaWS extends Thread {
                         out.flush();
 
                         System.out.println("Handshake sent");
+
+                        Connection con= new Connection(this, socket);
+                        connections.add(con);
+                        con.start();
+
+                        if (eventHandler != null) {
+                            eventHandler.onConnect(con);
+                        }
                     }
                     else {
                         out.write(
@@ -144,20 +173,21 @@ public class JaWS extends Thread {
 
                         System.out.println("Connection refused");
                     }
-
-                    if(websocket) {
-                        Connection con= new Connection(socket);
-                        connections.add(con);
-                        con.start();
-                    }
-                } catch(Exception e) {
+                }
+                catch(Exception e) {
                     e.printStackTrace();
                     System.out.println("IO error on socket creation");
                 }
-            } catch(Exception e) {
+            }
+            catch(Exception e) {
                 e.printStackTrace();
                 System.out.println("Socket accept failed");
             }
         }
     }
+
+    public void setEventHandler(WebSocketEventHandler eh) {
+        this.eventHandler = eh;
+    }
 }
+
