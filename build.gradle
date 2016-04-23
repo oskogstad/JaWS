@@ -4,6 +4,6 @@ jar.baseName = 'JaWS'
 
 jar {
    manifest {
-       attributes 'Main-Class': 'jaws.JaWS'
+       attributes 'Main-Class': 'jaws.Main'
    }
 }

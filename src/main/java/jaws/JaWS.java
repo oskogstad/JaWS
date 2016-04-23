@@ -6,18 +6,24 @@ import java.io.*;
 import java.util.*;
 import java.security.*;
 
-public class JaWS {
-    public static final int PORT=40506;
+public class JaWS extends Thread {
+    private final int PORT;
+    private final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    private final ServerSocket SOCKET_SERVER;
 
-    public static void main(String[] args) throws IOException {
+    private WebSocketEventHandler wsHandler;
+    private Base64.Encoder b64encoder;
+    private MessageDigest sha1digester;
+    private ArrayList<Connection> connections;
 
-        //Utilities
+    public JaWS(WebSocketEventHandler wsHandler, int port) throws IOException {
+        this.PORT = port;
+        this.wsHandler = wsHandler;
+        SOCKET_SERVER = new ServerSocket(PORT);
+        connections = new ArrayList();
 
-        final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-        Base64.Encoder b64encoder = Base64.getEncoder();
-
-        MessageDigest sha1digester = null;
+        // Utilities
+        b64encoder = Base64.getEncoder();
         try {
             sha1digester = MessageDigest.getInstance("SHA-1");
         }
@@ -25,38 +31,33 @@ public class JaWS {
             e.printStackTrace();
         }
 
-        // list of all connections
-        ArrayList<Connection> connections = new ArrayList();
-
-        final ServerSocket socketServer = new ServerSocket(PORT);
-
         // ShutdownHook, catches any interrupt signal and closes all threads
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
                 try {
                     // Close all threads
                     System.out.println("Number of threads: " + connections.size());
-
                     for (Connection c : connections) {
                         c.interrupt();
                     }
-
-                    if (socketServer != null) socketServer.close();
-
+                    if (SOCKET_SERVER != null) SOCKET_SERVER.close();
                     System.out.println("All done. Bye!");
-
                 } catch(Exception e) {
                     System.out.println("Thread shutdown failed ...");
                     e.printStackTrace();
                 }
             }
         }));
+    }
 
-        System.out.println("Server now listening on port " + PORT);
+    @Override
+    public void run() {
         while(true) {
             try {
+                System.out.println("Server now listening on port " + PORT);
+
                 // Waiting for connections
-                Socket socket = socketServer.accept();
+                Socket socket = SOCKET_SERVER.accept();
 				System.out.println("Incomming connection ...");
 
 				ArrayList<String> httpReq = new ArrayList();
