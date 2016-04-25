@@ -2,8 +2,11 @@ package jaws;
 import java.io.*;
 
 public class Main implements WebSocketEventHandler {
+
+    private JaWS jaws;
+
     public Main() {
-        JaWS jaws = new JaWS(40506);
+        jaws = new JaWS(40506);
         jaws.setEventHandler(this);
         jaws.start();
 
@@ -18,6 +21,7 @@ public class Main implements WebSocketEventHandler {
     @Override
     public void onMessage(Connection con, String message) {
         System.out.println(message);
+        jaws.broadcast(message);
     }
 
     @Override

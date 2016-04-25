@@ -137,7 +137,7 @@ public class Frame {
         bytes[0] = (byte)0x81; // 0x80 is the fin flag, 0x01 is opcode TEXT
         switch(length) {
             case 0:
-                bytes[1] = (byte)framelength;
+                bytes[1] = (byte)this.messageLength;
                 pointer = 2;
                 break;
             case 1:
