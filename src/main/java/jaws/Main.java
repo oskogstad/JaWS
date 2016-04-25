@@ -17,7 +17,7 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onMessage(Connection con, String message) {
-
+        System.out.println(message);
     }
 
     @Override

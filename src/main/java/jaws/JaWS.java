@@ -10,7 +10,6 @@ public class JaWS extends Thread {
     private final int PORT;
     private final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     private ServerSocket socketServer;
-
     private Base64.Encoder b64encoder;
     private MessageDigest sha1digester;
     private ArrayList<Connection> connections;
@@ -18,7 +17,6 @@ public class JaWS extends Thread {
 
     public JaWS(int port) {
         this.PORT = port;
-
         socketServer = null;
         try {
             socketServer = new ServerSocket(PORT);
@@ -37,7 +35,6 @@ public class JaWS extends Thread {
         catch(NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-
     }
 
     public synchronized void onMessage(Connection con, String message) {
@@ -82,9 +79,10 @@ public class JaWS extends Thread {
 
     @Override
     public void run() {
+        System.out.println("Server now listening on port " + PORT);
+
         while(true) {
             try {
-                System.out.println("Server now listening on port " + PORT);
 
                 // Waiting for connections
                 Socket socket = socketServer.accept();
@@ -111,11 +109,7 @@ public class JaWS extends Thread {
                     String upgrade = null;
                     String connection = null;
                     String wsKey = null;
-                    String[] wsProtocol = null;
-                    int wsVersion = -1;
                     for (String line : httpReq) {
-                        System.out.println(line);
-
                         String[] parts = line.split(": ");
                         if (parts.length == 1) {
                             // Should we check the GET ... line here?
@@ -133,12 +127,6 @@ public class JaWS extends Thread {
                             else if(key.equalsIgnoreCase("sec-websocket-key")) {
                                 wsKey = val;
                             }
-                            else if(key.equalsIgnoreCase("sec-websocket-protocol")) {
-                                wsProtocol = val.split(",");
-                            }
-                            else if(key.equalsIgnoreCase("sec-websocket-version")) {
-                                wsVersion = Integer.parseInt(val);
-                            }
                         }
                     }
 
@@ -148,10 +136,8 @@ public class JaWS extends Thread {
                             wsKey != null)
                     {
                         // Send handshake response
-
                         String acceptKey = b64encoder.encodeToString(
                                 sha1digester.digest((wsKey+GUID).getBytes()));
-
                         out.write(
                                 "HTTP/1.1 101 Switching Protocols\r\n"+
                                 "Upgrade: websocket\r\n"+
@@ -160,8 +146,7 @@ public class JaWS extends Thread {
                                 "\r\n\r\n");
                         out.flush();
 
-                        System.out.println("Handshake sent");
-
+                        System.out.println("Handshake sent, creating connection");
                         Connection con= new Connection(this, socket);
                         connections.add(con);
                         con.start();
@@ -172,12 +157,12 @@ public class JaWS extends Thread {
                     }
                     else {
                         out.write(
-                                "HTTPS/1.1 503 Connection Refused\r\n"+
+                                "HTTPS/1.1 400 Bad Request\r\n"+
                                 "\r\n\r\n"
                                 );
                         out.flush();
 
-                        System.out.println("Connection refused");
+                        System.out.println("Connection refused, 400 Bad Request");
                     }
                 }
                 catch(Exception e) {

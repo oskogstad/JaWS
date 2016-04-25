@@ -4,18 +4,20 @@ import java.io.*;
 import java.net.*;
 import java.util.Base64;
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
 
 public class Connection extends Thread {
 
     final Socket socket;
     final Base64.Decoder b64decoder = Base64.getDecoder();
-    private ArrayList<String> messageQue;
+    private LikedList<String> messageQueue;
     final JaWS jaws;
+    private boolean isInterrupted;
 
     public Connection(JaWS jaws, Socket socket) {
         this.jaws = jaws;
         this.socket = socket;
-        messageQue = new ArrayList();
+        messageQueue = new LinkedList<String>();
     }
 
     @Override
@@ -25,52 +27,40 @@ public class Connection extends Thread {
                 DataOutputStream output = new DataOutputStream(socket.getOutputStream());
            )
         {
+
             System.out.println("Connection open");
 
-            byte[] header = new byte[2];
-            input.read(header, 0, header.length);
+            while(!isInterrupted) {
 
-            boolean fin = ((int)header[0]&0x80) != 0;
-            boolean maskBit = (((int)header[1])&0x80) != 0;
-            int opcode = (int)header[0]&0x0F;
+                if(input.available() > 0) {
+                    Frame f = new Frame(input);
 
-            long payloadLen = ((int)header[1])&0x7F;
-            if (payloadLen == 126) {
-                // Read the next 2 bytes as payload length
-                byte[] b = new byte[2];
-                input.read(b, 0, b.length);
-                ByteBuffer buffer = ByteBuffer.wrap(b);
-                payloadLen = buffer.getShort();
+                    // Send pong if message is Ping
+                    if(f.isPing) {
+                        output.write(f.getFrameBytes);
+                    } else {
+                        jaws.onMessage(this, f.message);
+                    }
+
+                }
+                synchronized(messageQueue) {
+                    if(!messageQueue.isEmpty()) {
+                        for (String s : messageQueue) {
+                            Frame f = new Frame(message);
+                            output.write(f.getFrameBytes);
+                        }
+                        messageQueue.clear();
+                    }
+                }
+
+                // chill a bit yo
+                try {
+                    Thread.sleep(20);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
-            else if (payloadLen == 127) {
-                // Read the next 8 bytes as payload length
-                byte[] b = new byte[8];
-                input.read(b, 0, b.length);
-                ByteBuffer buffer = ByteBuffer.wrap(b);
-                payloadLen = buffer.getLong();
-            }
 
-            byte[] mask = new byte[4];
-
-            if (maskBit) {
-                input.read(mask, 0, mask.length);
-            }
-
-            // This will fail for messages of size bigger than int max val.
-            byte[] payload = new byte[(int)payloadLen];
-            input.read(payload, 0, (int)payloadLen);
-
-            String message = new String(payload);
-            if (maskBit) {
-                message = decode(payload, mask);
-            }
-            //
-            // System.out.println("--------------MESSAGE--------------");
-            // System.out.println("Fin: "+fin);
-            // System.out.println("Mask: "+maskBit);
-            // System.out.println("Opcode: "+opcodeNames[opcode]);
-            // System.out.println(message);
-            // System.out.println("----------------FIN----------------");
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -78,34 +68,13 @@ public class Connection extends Thread {
     }
 
     public void send(String message) {
-        synchronized(messageQue) {
-            messageQue.add(message);
+        synchronized(messageQueue) {
+            messageQueue.add(message);
         }
     }
 
-    private void processMessage(String message) {
-        byte[] out = new byte[2];
-        out[0] |= (0x80);
-        out[0] |= opcode;
-        System.out.println("PayloadLen: "+payloadLen);
-        out[1] |= payloadLen;
-
-        System.out.println("out[0]: "+out[0]);
-        System.out.println("out[1]: "+out[1]);
-        output.write(out[0]);
-        output.write(out[1]);
-        output.write(message.getBytes());
-    }
-
-    public void pong() {
-
-    }
-
-    private String decode(byte[] payload, byte[] mask) {
-        String decoded = "";
-        for (int i=0; i<payload.length; i++) {
-            decoded += (char)((int)payload[i] ^ (int)mask[i%4]);
-        }
-        return decoded;
+    @Override
+    public void interrupt() {
+        this.isInterrupted = true;
     }
 }
