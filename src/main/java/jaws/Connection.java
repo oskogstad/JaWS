@@ -10,7 +10,7 @@ public class Connection extends Thread {
 
     final Socket socket;
     final Base64.Decoder b64decoder = Base64.getDecoder();
-    private LikedList<String> messageQueue;
+    private LinkedList<String> messageQueue;
     final JaWS jaws;
     private boolean isInterrupted;
 
@@ -37,30 +37,27 @@ public class Connection extends Thread {
 
                     // Send pong if message is Ping
                     if(f.isPing) {
-                        output.write(f.getFrameBytes);
+                        output.write(f.frameBytes);
                     } else {
                         jaws.onMessage(this, f.message);
                     }
-
                 }
                 synchronized(messageQueue) {
                     if(!messageQueue.isEmpty()) {
                         for (String s : messageQueue) {
-                            Frame f = new Frame(message);
-                            output.write(f.getFrameBytes);
+                            Frame f = new Frame(s);
+                            output.write(f.frameBytes);
                         }
                         messageQueue.clear();
                     }
                 }
 
-                // chill a bit yo
                 try {
                     Thread.sleep(20);
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
             }
-
         }
         catch(IOException e) {
             e.printStackTrace();
