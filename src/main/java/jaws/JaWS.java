@@ -9,20 +9,19 @@ import java.security.*;
 public class JaWS extends Thread {
     private final int PORT;
     private final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    private ServerSocket SOCKET_SERVER;
+    private ServerSocket socketServer;
 
     private Base64.Encoder b64encoder;
     private MessageDigest sha1digester;
     private ArrayList<Connection> connections;
-
     private WebSocketEventHandler eventHandler;
 
     public JaWS(int port) {
         this.PORT = port;
 
-        SOCKET_SERVER = null;
+        socketServer = null;
         try {
-            SOCKET_SERVER = new ServerSocket(PORT);
+            socketServer = new ServerSocket(PORT);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -65,10 +64,19 @@ public class JaWS extends Thread {
             for (Connection c : connections) {
                 c.interrupt();
             }
-            if (SOCKET_SERVER != null) SOCKET_SERVER.close();
+            if (socketServer != null) socketServer.close();
 
         } catch(Exception e) {
             e.printStackTrace();
+        }
+    }
+
+
+    public void broadcast(String message) {
+        synchronized(connections) {
+            for (Connection c : connections) {
+                c.send(message);
+            }
         }
     }
 
@@ -79,7 +87,7 @@ public class JaWS extends Thread {
                 System.out.println("Server now listening on port " + PORT);
 
                 // Waiting for connections
-                Socket socket = SOCKET_SERVER.accept();
+                Socket socket = socketServer.accept();
 				System.out.println("Incomming connection ...");
 
 				ArrayList<String> httpReq = new ArrayList();
@@ -188,4 +196,3 @@ public class JaWS extends Thread {
         this.eventHandler = eh;
     }
 }
-

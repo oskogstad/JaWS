@@ -9,31 +9,13 @@ public class Connection extends Thread {
 
     final Socket socket;
     final Base64.Decoder b64decoder = Base64.getDecoder();
-
+    private ArrayList<String> messageQue;
     final JaWS jaws;
-
-    final static String[] opcodeNames = new String[] {
-        "continuation frame",
-        "text frame",
-        "binary frame",
-        "further non-control frame",
-        "further non-control frame",
-        "further non-control frame",
-        "further non-control frame",
-        "further non-control frame",
-        "connection close",
-        "ping",
-        "pong",
-        "further control frame",
-        "further control frame",
-        "further control frame",
-        "further control frame",
-        "further control frame",
-    };
 
     public Connection(JaWS jaws, Socket socket) {
         this.jaws = jaws;
         this.socket = socket;
+        messageQue = new ArrayList();
     }
 
     @Override
@@ -82,29 +64,41 @@ public class Connection extends Thread {
             if (maskBit) {
                 message = decode(payload, mask);
             }
-
-            System.out.println("--------------MESSAGE--------------");
-            System.out.println("Fin: "+fin);
-            System.out.println("Mask: "+maskBit);
-            System.out.println("Opcode: "+opcodeNames[opcode]);
-            System.out.println(message);
-            System.out.println("----------------FIN----------------");
-
-            byte[] out = new byte[2];
-            out[0] |= (0x80);
-            out[0] |= opcode;
-            System.out.println("PayloadLen: "+payloadLen);
-            out[1] |= payloadLen;
-
-            System.out.println("out[0]: "+out[0]);
-            System.out.println("out[1]: "+out[1]);
-            output.write(out[0]);
-            output.write(out[1]);
-            output.write(message.getBytes());
+            //
+            // System.out.println("--------------MESSAGE--------------");
+            // System.out.println("Fin: "+fin);
+            // System.out.println("Mask: "+maskBit);
+            // System.out.println("Opcode: "+opcodeNames[opcode]);
+            // System.out.println(message);
+            // System.out.println("----------------FIN----------------");
         }
         catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void send(String message) {
+        synchronized(messageQue) {
+            messageQue.add(message);
+        }
+    }
+
+    private void processMessage(String message) {
+        byte[] out = new byte[2];
+        out[0] |= (0x80);
+        out[0] |= opcode;
+        System.out.println("PayloadLen: "+payloadLen);
+        out[1] |= payloadLen;
+
+        System.out.println("out[0]: "+out[0]);
+        System.out.println("out[1]: "+out[1]);
+        output.write(out[0]);
+        output.write(out[1]);
+        output.write(message.getBytes());
+    }
+
+    public void pong() {
+
     }
 
     private String decode(byte[] payload, byte[] mask) {
@@ -115,4 +109,3 @@ public class Connection extends Thread {
         return decoded;
     }
 }
-
