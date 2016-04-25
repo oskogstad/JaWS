@@ -49,7 +49,7 @@ public class JaWS extends Thread {
         }
     }
 
-    public void onDisconnect(Connection con) {
+    public synchronized void onDisconnect(Connection con) {
         if(eventHandler != null) {
             eventHandler.onDisconnect(con);
         }
@@ -83,96 +83,82 @@ public class JaWS extends Thread {
 
         while(true) {
             try {
-
                 // Waiting for connections
                 Socket socket = socketServer.accept();
 				System.out.println("Incomming connection ...");
 
 				ArrayList<String> httpReq = new ArrayList();
 
-                try {
-                    BufferedReader in = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
+                BufferedReader in = new BufferedReader(
+                new InputStreamReader(socket.getInputStream()));
 
-                    PrintWriter out = new PrintWriter(
-                        new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+                PrintWriter out = new PrintWriter(
+                new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
 
-                    // Adding httpReq to string array
-                    String s;
-                    while((s=in.readLine()) != null) {
-                        if(s.isEmpty()) {
-                            break;
-                        }
-                        httpReq.add(s);
+                // Adding httpReq to string array
+                String s;
+                while((s=in.readLine()) != null) {
+                    if(s.isEmpty()) {
+                        break;
                     }
+                    httpReq.add(s);
+                }
 
-                    String upgrade = null;
-                    String connection = null;
-                    String wsKey = null;
-                    for (String line : httpReq) {
-                        String[] parts = line.split(": ");
-                        if (parts.length == 1) {
-                            // Should we check the GET ... line here?
-                        }
-                        else {
-                            String key = parts[0];
-                            String val = parts[1];
-
-                            if(key.toLowerCase().contains("upgrade")) {
-                                upgrade = val;
-                            }
-                            else if(key.equalsIgnoreCase("connection")) {
-                                connection = val;
-                            }
-                            else if(key.equalsIgnoreCase("sec-websocket-key")) {
-                                wsKey = val;
-                            }
-                        }
-                    }
-
-                    if (
-                            upgrade != null && upgrade.equalsIgnoreCase("websocket") &&
-                            connection != null && connection.toLowerCase().contains("upgrade") &&
-                            wsKey != null)
-                    {
-                        // Send handshake response
-                        String acceptKey = b64encoder.encodeToString(
-                                sha1digester.digest((wsKey+GUID).getBytes()));
-                        out.write(
-                                "HTTP/1.1 101 Switching Protocols\r\n"+
-                                "Upgrade: websocket\r\n"+
-                                "Connection: Upgrade\r\n"+
-                                "Sec-WebSocket-Accept: "+acceptKey+
-                                "\r\n\r\n");
-                        out.flush();
-
-                        System.out.println("Handshake sent, creating connection");
-                        Connection con= new Connection(this, socket);
-                        connections.add(con);
-                        con.start();
-
-                        if (eventHandler != null) {
-                            eventHandler.onConnect(con);
-                        }
+                String upgrade = null;
+                String connection = null;
+                String wsKey = null;
+                for (String line : httpReq) {
+                    String[] parts = line.split(": ");
+                    if (parts.length == 1) {
+                        // Should we check the GET ... line here?
                     }
                     else {
-                        out.write(
-                                "HTTPS/1.1 400 Bad Request\r\n"+
-                                "\r\n\r\n"
-                                );
-                        out.flush();
+                        String key = parts[0];
+                        String val = parts[1];
 
-                        System.out.println("Connection refused, 400 Bad Request");
+                        if(key.toLowerCase().contains("upgrade")) {
+                            upgrade = val;
+                        }
+                        else if(key.equalsIgnoreCase("connection")) {
+                            connection = val;
+                        }
+                        else if(key.equalsIgnoreCase("sec-websocket-key")) {
+                            wsKey = val;
+                        }
                     }
                 }
-                catch(Exception e) {
-                    e.printStackTrace();
-                    System.out.println("IO error on socket creation");
+
+                if (
+                    upgrade != null && upgrade.equalsIgnoreCase("websocket") &&
+                    connection != null && connection.toLowerCase().contains("upgrade") &&
+                    wsKey != null)
+                {
+                    // Send handshake response
+                    String acceptKey = b64encoder.encodeToString(
+                            sha1digester.digest((wsKey+GUID).getBytes()));
+                    out.write(
+                        "HTTP/1.1 101 Switching Protocols\r\n"+
+                        "Upgrade: websocket\r\n"+
+                        "Connection: Upgrade\r\n"+
+                        "Sec-WebSocket-Accept: "+acceptKey+
+                        "\r\n\r\n");
+                    out.flush();
+
+                    System.out.println("Handshake sent, creating connection");
+                    Connection con= new Connection(this, socket);
+                    connections.add(con);
+                    con.start();
+
+                    if (eventHandler != null) {
+                        eventHandler.onConnect(con);
+                    }
                 }
-            }
-            catch(Exception e) {
+                else {
+                    out.write("HTTPS/1.1 400 Bad Request\r\n"+"\r\n\r\n");
+                    out.flush();
+                }
+            } catch(Exception e) {
                 e.printStackTrace();
-                System.out.println("Socket accept failed");
             }
         }
     }
