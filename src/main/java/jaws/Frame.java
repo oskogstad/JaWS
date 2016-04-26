@@ -102,11 +102,11 @@ public class Frame {
     }
 
     private String decode(byte[] payload, byte[] mask) {
-       String decoded = "";
+       byte[] decoded = new byte[payload.length];
        for (int i=0; i<payload.length; i++) {
-           decoded += (char)((int)payload[i] ^ (int)mask[i%4]);
+           decoded[i] = (byte)((int)payload[i] ^ (int)mask[i%4]);
        }
-       return decoded;
+       return new String(decoded, utf8);
     }
 
     private byte[] pack(byte[] messageBytes, int op, byte[] mask) {
