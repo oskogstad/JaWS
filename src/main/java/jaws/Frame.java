@@ -21,6 +21,14 @@ public class Frame {
 
     public final byte[] mask;
 
+    public final static byte[] PONG_FRAME;
+    static {
+        PONG_FRAME = new byte[3];
+        PONG_FRAME[0] = (byte)0x8A; // Set fin flag (0x80) and opcode PONG (0x0A)
+        PONG_FRAME[1] = (byte)0x01; // Set mask bit to 0 and payload length to 1
+        PONG_FRAME[2] = (byte)'!';  // Set dummy payload to '!'
+    }
+
     public Frame(String message) {
         this.message = message;
         this.mask = null;

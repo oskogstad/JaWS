@@ -31,22 +31,25 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onMessage(Connection con, String message) {
-        JsonObject json = (JsonObject) jsonParser.parse(message);
+        JsonElement jsonElem = jsonParser.parse(message);
+        if (jsonElem instanceof JsonObject) {
+            JsonObject json = (JsonObject)jsonElem;
+            // escape all text from client
+            json.addProperty("name", StringEscapeUtils.escapeHtml4(json.get("name").getAsString()));
+            json.addProperty("msg", StringEscapeUtils.escapeHtml4(json.get("msg").getAsString()));
+            json.addProperty("timestamp", StringEscapeUtils.escapeHtml4(json.get("timestamp").getAsString()));
 
-        // escape all text from client
-        json.addProperty("name", StringEscapeUtils.escapeHtml4(json.get("name").getAsString()));
-        json.addProperty("msg", StringEscapeUtils.escapeHtml4(json.get("msg").getAsString()));
-        json.addProperty("timestamp", StringEscapeUtils.escapeHtml4(json.get("timestamp").getAsString()));
+            // send to all clients
+            jaws.broadcast(json.toString());
+        }
 
-        // send to all clients
-        jaws.broadcast(json.toString());
     }
 
     @Override
     public void onConnect(Connection con) {
         numberOfConnections++;
         // make json and broadcast change to chat.tilfeldig.info
-        System.out.println("number of con: " + numberOfConnections);
+        Logger.log("number of con: " + numberOfConnections, Logger.GENERAL);
     }
 
     @Override
@@ -58,7 +61,7 @@ public class Main implements WebSocketEventHandler {
     }
 
     public static void main(String[] args) {
-        Logger.logLevel = Logger.ALL;
+        Logger.logLevel = Logger.ALL & ~(Logger.WS_PARSE | Logger.WS_IO);
 
         new Main();
     }
