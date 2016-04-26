@@ -76,8 +76,8 @@ public class Main implements WebSocketEventHandler {
         Logger.log("Number of connections: " + numberOfConnections, Logger.GENERAL);
 
         // send chatlog to the new connection
-        for (String s : chatlogArray) {
-            con.send(s);
+        for (int i=(int)Math.max(0, chatlogArray.size()-15); i<chatlogArray.size(); i++) {
+            con.send(chatlogArray.get(i));
         }
 
     }
@@ -114,7 +114,7 @@ public class Main implements WebSocketEventHandler {
     }
 
     public static void main(String[] args) {
-        Logger.logLevel = Logger.ALL;
+        Logger.logLevel = Logger.GENERAL;
 
         new Main();
     }

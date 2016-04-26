@@ -5,3 +5,30 @@
 {"name":" Ole","msg":"rst","timestamp":"2016-04-26 13:22:26"}
 {"name":" Ole","msg":"ar","timestamp":"2016-04-26 13:22:26"}
 {"name":" Ole","msg":"st","timestamp":"2016-04-26 13:22:26"}
+{"name":"Hallgeir","msg":"Test","timestamp":"2016-04-26 13:38:40"}
+{"name":"Hallgeir","msg":"sdfasf","timestamp":"2016-04-26 13:42:23"}
+{"name":"Hallgeir","msg":"asdf","timestamp":"2016-04-26 13:42:25"}
+{"name":"Hallgeir","msg":"sdf","timestamp":"2016-04-26 13:42:29"}
+{"name":"Hallgeir","msg":"sdf","timestamp":"2016-04-26 13:42:30"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:30"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:30"}
+{"name":"Hallgeir","msg":"dd","timestamp":"2016-04-26 13:42:30"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:31"}
+{"name":"Hallgeir","msg":"dd","timestamp":"2016-04-26 13:42:31"}
+{"name":"Hallgeir","msg":"dd","timestamp":"2016-04-26 13:42:32"}
+{"name":"Hallgeir","msg":"dd","timestamp":"2016-04-26 13:42:32"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:32"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:32"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:33"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:33"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:33"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:33"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:33"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:34"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:34"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:34"}
+{"name":"Hallgeir","msg":"d","timestamp":"2016-04-26 13:42:34"}
+{"name":"Hallgeir","msg":"dd","timestamp":"2016-04-26 13:42:34"}
+{"name":"Hallgeir","msg":"sdfsdf","timestamp":"2016-04-26 13:42:53"}
+{"name":"Hallgeir","msg":"ddfsfs","timestamp":"2016-04-26 13:42:54"}
+{"name":"Hallgeir","msg":"aqweqe","timestamp":"2016-04-26 13:42:55"}

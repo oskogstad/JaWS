@@ -2,6 +2,7 @@ package jaws;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.io.*;
 import java.util.*;
 import java.security.*;
@@ -52,19 +53,22 @@ public class JaWS extends Thread {
     }
 
     public synchronized void onDisconnect(Connection con) {
+        connections.remove(con);
         if(eventHandler != null) {
             eventHandler.onDisconnect(con);
         }
-        connections.remove(con);
     }
 
     public synchronized void close() {
         try {
-            // Close all threads
-            for (Connection c : connections) {
-                c.close();
-            }
             running = false;
+
+            // Close all threads
+            synchronized(connections) {
+                for (int i=0; i<connections.size(); i++) {
+                    connections.get(i).close();
+                }
+            }
             socketServer.close();
         } catch(Exception e) {
             e.printStackTrace();
@@ -160,7 +164,14 @@ public class JaWS extends Thread {
                     out.write("HTTPS/1.1 400 Bad Request\r\n"+"\r\n\r\n");
                     out.flush();
                 }
-            } catch(Exception e) {
+            }
+            catch(SocketException e) {
+                if(!socketServer.isClosed()) {
+                    e.printStackTrace();
+                }
+                // Else ignore. The program is terminating. All is well
+            }
+            catch(Exception e) {
                 e.printStackTrace();
             }
         }

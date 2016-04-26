@@ -49,7 +49,10 @@ public class Connection extends Thread {
                 }
             }
             catch(IOException e) {
-                e.printStackTrace();
+                if(!socket.isClosed()) {
+                    e.printStackTrace();
+                }
+                // else ignore. The connection is closed. All is well
             }
         }
     }
