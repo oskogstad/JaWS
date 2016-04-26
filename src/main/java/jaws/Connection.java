@@ -43,7 +43,7 @@ public class Connection extends Thread {
                         }
                         else {
                             // Begin fragmented message.
-                            stringBuilder.clear();
+                            stringBuilder = new StringBuilder();
                             stringBuilder.append(f.message);
                         }
                         break;

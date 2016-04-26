@@ -55,24 +55,25 @@ public class Main implements WebSocketEventHandler {
     public void onMessage(Connection con, String message) {
         try {
             JsonElement jsonElem = jsonParser.parse(message);
+
+            if (jsonElem instanceof JsonObject) {
+                JsonObject json = (JsonObject)jsonElem;
+
+                // Escape all text from client
+                json.addProperty("name", StringEscapeUtils.escapeHtml4(json.get("name").getAsString()));
+                json.addProperty("msg", StringEscapeUtils.escapeHtml4(json.get("msg").getAsString()));
+                json.addProperty("timestamp", StringEscapeUtils.escapeHtml4(json.get("timestamp").getAsString()));
+
+                // Send to all clients
+                jaws.broadcast(json.toString());
+                writeToChatlog(json.toString());
+            }
         }
         catch(JsonParseException e) {
             Logger.logErr("Failed to parse message "+message+" as JSON", Logger.JSON);
             return;
         }
 
-        if (jsonElem instanceof JsonObject) {
-            JsonObject json = (JsonObject)jsonElem;
-
-            // Escape all text from client
-            json.addProperty("name", StringEscapeUtils.escapeHtml4(json.get("name").getAsString()));
-            json.addProperty("msg", StringEscapeUtils.escapeHtml4(json.get("msg").getAsString()));
-            json.addProperty("timestamp", StringEscapeUtils.escapeHtml4(json.get("timestamp").getAsString()));
-
-            // Send to all clients
-            jaws.broadcast(json.toString());
-            writeToChatlog(json.toString());
-        }
 
     }
 

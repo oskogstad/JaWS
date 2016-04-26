@@ -21,6 +21,8 @@ public class Frame {
 
     public final byte[] mask;
 
+    public final boolean fin;
+
     public final static byte[] PONG_FRAME;
     static {
         PONG_FRAME = new byte[3];
@@ -32,6 +34,7 @@ public class Frame {
     public Frame(String message) {
         this.message = message;
         this.mask = null;
+        this.fin = true;
 
         opcode = OpCode.TEXT;
         byte[] messageBytes = message.getBytes(utf8);
@@ -43,7 +46,7 @@ public class Frame {
     public Frame(DataInputStream input) throws IOException {
             byte[] header = new byte[2];
             input.read(header, 0, header.length);
-            boolean fin = ((int)header[0]&0x80) != 0;
+            this.fin = ((int)header[0]&0x80) != 0;
             boolean maskBit = (((int)header[1])&0x80) != 0;
             int op = (int)header[0]&0x0F;
             long payloadLen = ((int)header[1])&0x7F;
