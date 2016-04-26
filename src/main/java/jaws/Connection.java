@@ -28,6 +28,11 @@ public class Connection extends Thread {
         while(!Thread.interrupted()) {
             try {
                 Frame f = new Frame(input);
+                for (byte b : f.frameBytes ) {
+                    Logger.log(Integer.toHexString(b), Logger.WS_IO);
+                    Logger.log(b+"\n", Logger.WS_IO);
+
+                }
                 switch(f.opcode) {
                     case PING:
                         output.write(Frame.PONG_FRAME);
@@ -51,15 +56,16 @@ public class Connection extends Thread {
 
     public void send(String message) {
         new Thread() {
-            
+
             @Override
             public void run() {
                 Frame f = new Frame(message);
                 try {
+                    Logger.log(f.message, Logger.WS_IO);
                     output.write(f.frameBytes);
                 }
                 catch(IOException e) {
-                    e.printStackTrace(); 
+                    e.printStackTrace();
                 }
             }
 
@@ -81,4 +87,3 @@ public class Connection extends Thread {
         }
     }
 }
-
