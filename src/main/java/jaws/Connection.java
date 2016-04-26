@@ -49,12 +49,17 @@ public class Connection extends Thread {
                         break;
                     case CONTINUATION:
                         if (f.fin) {
-                            stringBuilder.append(f.message);
-                            jaws.onMessage(this, stringBuilder.toString());
+                            if(stringBuilder != null) {
+                                stringBuilder.append(f.message);
+                                jaws.onMessage(this, stringBuilder.toString());
+                            }
                         }
                         else {
-                            stringBuilder.append(f.message);
+                            if(stringBuilder != null) {
+                                stringBuilder.append(f.message);
+                            }
                         }
+                        break;
                     default:
                         Logger.log("Unhandled message with opcode "+f.opcode, Logger.WS_IO);
                         break;

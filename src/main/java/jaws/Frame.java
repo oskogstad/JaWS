@@ -52,6 +52,7 @@ public class Frame {
             long payloadLen = ((int)header[1])&0x7F;
 
             this.opcode = OpCode.getOpcode(op);
+            //TODO: Handle opcode = null
 
             if (payloadLen == 126) {
                 // Read the next 2 bytes as payload length
