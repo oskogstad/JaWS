@@ -50,7 +50,7 @@ public class Connection extends Thread {
                     case CONTINUATION:
                         if (f.fin) {
                             stringBuilder.append(f.message);
-                            jaws.onMessage(this, f.message);
+                            jaws.onMessage(this, stringBuilder.toString());
                         }
                         else {
                             stringBuilder.append(f.message);
