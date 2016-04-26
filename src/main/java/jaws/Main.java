@@ -27,6 +27,9 @@ public class Main implements WebSocketEventHandler {
         chatlogArray = new ArrayList();
         try {
             chatlog = new File("chatlog.txt");
+            if(!chatlog.exists()) {
+                chatlog.createNewFile();
+            }
             reader = new BufferedReader(new FileReader(chatlog));
             String text = null;
             while ((text = reader.readLine()) != null) {
