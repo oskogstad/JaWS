@@ -21,12 +21,9 @@ public class Frame {
 
     public final byte[] mask;
 
-    public final boolean isPing;
-
     public Frame(String message) {
         this.message = message;
         this.mask = null;
-        this.isPing = false;
 
         opcode = OpCode.TEXT;
         byte[] messageBytes = message.getBytes(utf8);
@@ -44,12 +41,6 @@ public class Frame {
             long payloadLen = ((int)header[1])&0x7F;
 
             this.opcode = OpCode.getOpcode(op);
-            if (this.opcode == OpCode.PING) {
-                isPing = true;
-            }
-            else {
-                isPing = false;
-            }
 
             if (payloadLen == 126) {
                 // Read the next 2 bytes as payload length

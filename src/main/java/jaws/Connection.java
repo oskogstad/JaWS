@@ -34,12 +34,19 @@ public class Connection extends Thread {
 
                 if(input.available() > 0) {
                     Frame f = new Frame(input);
-
-                    // Send pong if message is Ping
-                    if(f.isPing) {
-                        output.write(f.frameBytes);
-                    } else {
-                        jaws.onMessage(this, f.message);
+                    switch(f.opcode) {
+                        case PING:
+                            output.write(f.frameBytes);
+                            break;
+                        case CONNECTION_CLOSE:
+                            isInterrupted = true;
+                            break;
+                        case TEXT:
+                            jaws.onMessage(this, f.message);
+                            break;
+                        default:
+                            Logger.log("Unhandled message with opcode "+f.opcode, Logger.WS_IO);
+                            break;
                     }
                 }
                 synchronized(messageQueue) {
