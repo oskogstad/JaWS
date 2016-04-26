@@ -23,9 +23,9 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onMessage(Connection con, String message) {
-        System.out.println(message);
+        Logger.log(message, Logger.GENERAL);
         JsonElement json = jsonParser.parse(message);
-        System.out.println(json.toString());
+        Logger.log(json.toString(), Logger.JSON);
         
         jaws.broadcast(message);
     }
@@ -37,10 +37,12 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onDisconnect(Connection con) {
-
+        Logger.log("Connection disconnected", Logger.GENERAL);
     }
 
     public static void main(String[] args) {
+        Logger.logLevel = Logger.JSON | Logger.GENERAL;
+
         new Main();
     }
 }

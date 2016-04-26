@@ -142,16 +142,16 @@ public class Frame {
                 break;
             case 1:
                 bytes[1] = (byte)126;
-                bytes[2] = (byte)(framelength>>8);
-                bytes[3] = (byte)(framelength&0xFF);
+                bytes[2] = (byte)(messageLength>>8);
+                bytes[3] = (byte)(messageLength&0xFF);
                 pointer = 4;
                 break;
             case 2: // Due to limitations in java, we cannot fully support 8 bytes of payload length
                 bytes[1] = (byte)127;
-                bytes[9] = (byte)(framelength&0xFF);
-                bytes[8] = (byte)(framelength&0xFF00);
-                bytes[7] = (byte)(framelength&0xFF0000);
-                bytes[6] = (byte)(framelength&0xFF000000);
+                bytes[9] = (byte)(messageLength&0xFF);
+                bytes[8] = (byte)(messageLength&0xFF00);
+                bytes[7] = (byte)(messageLength&0xFF0000);
+                bytes[6] = (byte)(messageLength&0xFF000000);
 
                 pointer = 10;
                 break;

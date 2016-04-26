@@ -25,7 +25,7 @@ public class JaWS extends Thread {
             e.printStackTrace();
         }
 
-        connections = new ArrayList();
+        connections = new ArrayList<Connection>();
 
         // Utilities
         b64encoder = Base64.getEncoder();
@@ -61,8 +61,7 @@ public class JaWS extends Thread {
             for (Connection c : connections) {
                 c.interrupt();
             }
-            if (socketServer != null) socketServer.close();
-
+            this.interrupt();
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -79,13 +78,13 @@ public class JaWS extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Server now listening on port " + PORT);
+        Logger.log("Server now listening on port " + PORT, Logger.GENERAL);
 
         while(true) {
             try {
                 // Waiting for connections
                 Socket socket = socketServer.accept();
-				System.out.println("Incomming connection ...");
+				Logger.log("Incomming connection ...", Logger.GENERAL);
 
 				ArrayList<String> httpReq = new ArrayList();
 
@@ -144,7 +143,7 @@ public class JaWS extends Thread {
                         "\r\n\r\n");
                     out.flush();
 
-                    System.out.println("Handshake sent, creating connection");
+                    Logger.log("Handshake sent, creating connection", Logger.GENERAL);
                     Connection con= new Connection(this, socket);
                     connections.add(con);
                     con.start();
@@ -163,7 +162,22 @@ public class JaWS extends Thread {
         }
     }
 
+    @Override
+    public void interrupt() {
+        if (socketServer != null) {
+            try {
+                socketServer.close();
+            }
+            catch(IOException e) {
+                Logger.logErr("Failed to close server socket", Logger.GENERAL);
+                e.printStackTrace();
+            }
+        }        
+        super.interrupt();
+    }
+
     public void setEventHandler(WebSocketEventHandler eh) {
         this.eventHandler = eh;
     }
 }
+

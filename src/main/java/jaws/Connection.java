@@ -28,7 +28,7 @@ public class Connection extends Thread {
            )
         {
 
-            System.out.println("Connection open");
+            Logger.log("Connection open", Logger.GENERAL);
 
             while(!isInterrupted) {
 
@@ -45,10 +45,10 @@ public class Connection extends Thread {
                 synchronized(messageQueue) {
                     if(!messageQueue.isEmpty()) {
                         for (String s : messageQueue) {
-                            System.out.println("Sending message "+s);
+                            Logger.log("Sending message "+s, Logger.WS_IO);
                             Frame f = new Frame(s);
                             for (byte b : f.frameBytes) {
-                                System.out.println("\t"+b+": "+Integer.toHexString(b));
+                                Logger.log("\t"+b+": "+Integer.toHexString(b), Logger.WS_IO);
                             }
                             output.write(f.frameBytes);
                             output.flush();
@@ -67,6 +67,9 @@ public class Connection extends Thread {
         catch(IOException e) {
             e.printStackTrace();
         }
+
+        Logger.log("Connection closed", Logger.GENERAL);
+        jaws.onDisconnect(this);
     }
 
     public void send(String message) {
@@ -80,3 +83,4 @@ public class Connection extends Thread {
         this.isInterrupted = true;
     }
 }
+
