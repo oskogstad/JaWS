@@ -15,6 +15,8 @@ public class JaWS extends Thread {
     private ArrayList<Connection> connections;
     private WebSocketEventHandler eventHandler;
 
+    private volatile boolean running = true;
+
     public JaWS(int port) {
         this.PORT = port;
         socketServer = null;
@@ -60,9 +62,10 @@ public class JaWS extends Thread {
         try {
             // Close all threads
             for (Connection c : connections) {
-                c.interrupt();
+                c.close();
             }
-            this.interrupt();
+            running = false;
+            socketServer.close();
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -81,13 +84,13 @@ public class JaWS extends Thread {
     public void run() {
         Logger.log("Server now listening on port " + PORT, Logger.GENERAL);
 
-        while(true) {
+        while(running) {
             try {
                 // Waiting for connections
                 Socket socket = socketServer.accept();
 				Logger.log("Incomming connection ...", Logger.GENERAL);
 
-				ArrayList<String> httpReq = new ArrayList();
+				ArrayList<String> httpReq = new ArrayList<String>();
 
                 BufferedReader in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
@@ -163,21 +166,8 @@ public class JaWS extends Thread {
         }
     }
 
-    @Override
-    public void interrupt() {
-        if (socketServer != null) {
-            try {
-                socketServer.close();
-            }
-            catch(IOException e) {
-                Logger.logErr("Failed to close server socket", Logger.GENERAL);
-                e.printStackTrace();
-            }
-        }
-        super.interrupt();
-    }
-
     public void setEventHandler(WebSocketEventHandler eh) {
         this.eventHandler = eh;
     }
 }
+

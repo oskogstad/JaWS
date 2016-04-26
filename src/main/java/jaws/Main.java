@@ -35,7 +35,7 @@ public class Main implements WebSocketEventHandler {
         } catch(IOException e) {
             e.printStackTrace();
         }
-        
+
         // ShutdownHook, catches any interrupt signal and closes all threads
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
@@ -46,15 +46,18 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onMessage(Connection con, String message) {
-        JsonObject json = (JsonObject) jsonParser.parse(message);
+        JsonElement jsonElem = jsonParser.parse(message);
+        if (jsonElem instanceof JsonObject) {
+            JsonObject json = (JsonObject)jsonElem;
+            // escape all text from client
+            json.addProperty("name", StringEscapeUtils.escapeHtml4(json.get("name").getAsString()));
+            json.addProperty("msg", StringEscapeUtils.escapeHtml4(json.get("msg").getAsString()));
+            json.addProperty("timestamp", StringEscapeUtils.escapeHtml4(json.get("timestamp").getAsString()));
 
-        // escape all text from client
-        json.addProperty("name", StringEscapeUtils.escapeHtml4(json.get("name").getAsString()));
-        json.addProperty("msg", StringEscapeUtils.escapeHtml4(json.get("msg").getAsString()));
-        json.addProperty("timestamp", StringEscapeUtils.escapeHtml4(json.get("timestamp").getAsString()));
+            // send to all clients
+            jaws.broadcast(json.toString());
+        }
 
-        // send to all clients
-        jaws.broadcast(json.toString());
     }
 
     @Override
@@ -62,6 +65,7 @@ public class Main implements WebSocketEventHandler {
         for (String s: chatlogArray) {
             Logger.log(s, Logger.GENERAL);
         }
+
         Logger.log("New connection", Logger.GENERAL);
         numberOfConnections++;
 
@@ -91,7 +95,12 @@ public class Main implements WebSocketEventHandler {
     }
 
     public static void main(String[] args) {
+<<<<<<< HEAD
         Logger.logLevel = Logger.ALL;
+=======
+        Logger.logLevel = Logger.ALL & ~(Logger.WS_PARSE | Logger.WS_IO);
+
+>>>>>>> dd0faa1392d47997273db8ef05a92d65f15e9f61
         new Main();
     }
 }
