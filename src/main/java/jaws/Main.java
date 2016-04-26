@@ -11,6 +11,7 @@ public class Main implements WebSocketEventHandler {
     private JaWS jaws;
     private JsonParser jsonParser;
     private StringEscapeUtils stringEscape;
+    private int numberOfConnections;
 
     public Main() {
         jaws = new JaWS(40506);
@@ -18,6 +19,7 @@ public class Main implements WebSocketEventHandler {
         jaws.start();
         jsonParser = new JsonParser();
         stringEscape = new StringEscapeUtils();
+        numberOfConnections = 0;
 
         // ShutdownHook, catches any interrupt signal and closes all threads
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -42,12 +44,16 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onConnect(Connection con) {
-
+        numberOfConnections++;
+        // make json and broadcast change to chat.tilfeldig.info
+        System.out.println("number of con: " + numberOfConnections);
     }
 
     @Override
     public void onDisconnect(Connection con) {
-
+        numberOfConnections--;
+        // make json and broadcast change to chat.tilfeldig.info
+        System.out.println("number of con: " + numberOfConnections);
     }
 
     public static void main(String[] args) {

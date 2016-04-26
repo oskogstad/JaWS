@@ -45,11 +45,7 @@ public class Connection extends Thread {
                 synchronized(messageQueue) {
                     if(!messageQueue.isEmpty()) {
                         for (String s : messageQueue) {
-                            System.out.println("Sending message "+s);
                             Frame f = new Frame(s);
-                            for (byte b : f.frameBytes) {
-                                System.out.println("\t"+b+": "+Integer.toHexString(b));
-                            }
                             output.write(f.frameBytes);
                             output.flush();
                         }
