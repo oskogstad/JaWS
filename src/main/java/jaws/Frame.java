@@ -72,14 +72,14 @@ public class Frame {
             else {
                 this.mask = null;
             }
-            
+
             // This will fail for messages of size bigger than int max val.
             byte[] payload = new byte[(int)payloadLen];
             input.read(payload, 0, (int)payloadLen);
 
             if (maskBit) {
                 this.message = decode(payload, this.mask);
-            } 
+            }
             else {
                 this.message = new String(payload);
             }
@@ -97,7 +97,7 @@ public class Frame {
             else if (payloadLen >= 126) {
                 frameBytesLength += 2;
             }
-            
+
             this.frameBytes = pack(messageBytes, op, this.mask);
     }
 
@@ -118,7 +118,7 @@ public class Frame {
          * 1 for 2 bytes,
          * and 2 for 8 bytes of paylod length
          */
-        int length = 0; 
+        int length = 0;
 
         if (this.messageLength > 32768) {
             length = 2;
@@ -220,4 +220,3 @@ public class Frame {
         }
     }
 }
-

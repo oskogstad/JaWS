@@ -30,7 +30,9 @@ public class Main implements WebSocketEventHandler {
             reader = new BufferedReader(new FileReader(chatlog));
             String text = null;
             while ((text = reader.readLine()) != null) {
-                chatlogArray.add(text);
+                if(text.length() > 0) {
+                    chatlogArray.add(text);
+                }
             }
         } catch(IOException e) {
             e.printStackTrace();
@@ -49,23 +51,21 @@ public class Main implements WebSocketEventHandler {
         JsonElement jsonElem = jsonParser.parse(message);
         if (jsonElem instanceof JsonObject) {
             JsonObject json = (JsonObject)jsonElem;
-            // escape all text from client
+
+            // Escape all text from client
             json.addProperty("name", StringEscapeUtils.escapeHtml4(json.get("name").getAsString()));
             json.addProperty("msg", StringEscapeUtils.escapeHtml4(json.get("msg").getAsString()));
             json.addProperty("timestamp", StringEscapeUtils.escapeHtml4(json.get("timestamp").getAsString()));
 
-            // send to all clients
+            // Send to all clients
             jaws.broadcast(json.toString());
+            writeToChatlog(json.toString());
         }
 
     }
 
     @Override
     public void onConnect(Connection con) {
-        for (String s: chatlogArray) {
-            Logger.log(s, Logger.GENERAL);
-        }
-
         Logger.log("New connection", Logger.GENERAL);
         numberOfConnections++;
 
@@ -73,8 +73,13 @@ public class Main implements WebSocketEventHandler {
         JsonObject json = new JsonObject();
         json.addProperty("numberOfCon", numberOfConnections);
         jaws.broadcast(json.toString());
-
         Logger.log("Number of connections: " + numberOfConnections, Logger.GENERAL);
+
+        // send chatlog to the new connection
+        for (String s : chatlogArray) {
+            con.send(s);
+        }
+
     }
 
     @Override
@@ -92,11 +97,25 @@ public class Main implements WebSocketEventHandler {
 
     public void writeToChatlog(String text) {
         // make new thread, write to array and file
+        chatlogArray.add(text);
+        new Thread() {
+            @Override
+            public void run() {
+                synchronized(chatlog) {
+                    try(BufferedWriter writer = new BufferedWriter(new FileWriter(chatlog, true))) {
+                        writer.write(text+"\n");
+                    }
+                    catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.start();
     }
 
     public static void main(String[] args) {
         Logger.logLevel = Logger.ALL;
-        
+
         new Main();
     }
 }

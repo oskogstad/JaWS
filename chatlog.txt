@@ -1,9 +1,7 @@
-ArrayListarst
-argsarst
-arst
-
-
-
-art
-arst
-arst
+{"name":" Ole","msg":"ta","timestamp":"2016-04-26 13:21:12"}
+{"name":" Ole","msg":"arst","timestamp":"2016-04-26 13:22:25"}
+{"name":" Ole","msg":"art","timestamp":"2016-04-26 13:22:25"}
+{"name":" Ole","msg":"a","timestamp":"2016-04-26 13:22:25"}
+{"name":" Ole","msg":"rst","timestamp":"2016-04-26 13:22:26"}
+{"name":" Ole","msg":"ar","timestamp":"2016-04-26 13:22:26"}
+{"name":" Ole","msg":"st","timestamp":"2016-04-26 13:22:26"}
