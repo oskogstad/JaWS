@@ -53,6 +53,7 @@ public class JaWS extends Thread {
         if(eventHandler != null) {
             eventHandler.onDisconnect(con);
         }
+        connections.remove(con);
     }
 
     public synchronized void close() {
@@ -172,7 +173,7 @@ public class JaWS extends Thread {
                 Logger.logErr("Failed to close server socket", Logger.GENERAL);
                 e.printStackTrace();
             }
-        }        
+        }
         super.interrupt();
     }
 
@@ -180,4 +181,3 @@ public class JaWS extends Thread {
         this.eventHandler = eh;
     }
 }
-

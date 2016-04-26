@@ -58,7 +58,7 @@ public class Main implements WebSocketEventHandler {
     }
 
     public static void main(String[] args) {
-        Logger.logLevel = Logger.JSON | Logger.GENERAL;
+        Logger.logLevel = Logger.ALL;
 
         new Main();
     }
