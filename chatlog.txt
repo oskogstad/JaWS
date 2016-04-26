@@ -32,3 +32,4 @@
 {"name":"Hallgeir","msg":"sdfsdf","timestamp":"2016-04-26 13:42:53"}
 {"name":"Hallgeir","msg":"ddfsfs","timestamp":"2016-04-26 13:42:54"}
 {"name":"Hallgeir","msg":"aqweqe","timestamp":"2016-04-26 13:42:55"}
+

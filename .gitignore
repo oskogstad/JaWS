@@ -9,3 +9,7 @@ build/
 # mac stuff
 .DS_Store
 ._*
+
+
+#other
+chatlog.txt
