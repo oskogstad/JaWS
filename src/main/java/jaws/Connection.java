@@ -73,6 +73,7 @@ public class Connection extends Thread {
             socket.close();
 
             this.interrupt();
+            jaws.onDisconnect(this);
         }
         catch(IOException e) {
             Logger.logErr("Exception thrown while closing connection!", Logger.WS_IO);
