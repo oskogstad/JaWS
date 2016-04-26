@@ -140,7 +140,7 @@ public class Frame {
          */
         int length = 0;
 
-        if (this.messageLength > 32768) {
+        if (this.messageLength > 65535) {
             length = 2;
             framelength += 8;
         }
@@ -153,30 +153,45 @@ public class Frame {
         int pointer = 2; // This will tell us what index in the array we will begin writing the message
 
         // Writing payload length
+        Logger.log("---PACKING PAYLOAD LENGTH "+this.messageLength+"---", Logger.WS_PARSE);
         bytes[0] = (byte)0x81; // 0x80 is the fin flag, 0x01 is opcode TEXT
         switch(length) {
             case 0:
                 bytes[1] = (byte)this.messageLength;
+
+                Logger.log("byte1: "+(bytes[1]&0xFF), Logger.WS_PARSE);
+
                 pointer = 2;
                 break;
             case 1:
                 bytes[1] = (byte)126;
                 bytes[2] = (byte)(messageLength>>8);
                 bytes[3] = (byte)(messageLength&0xFF);
+
+                for (int i=1; i<4; i++) {
+                    Logger.log("byte"+i+": "+(bytes[i]&0xFF), Logger.WS_PARSE);
+                }
+
                 pointer = 4;
                 break;
             case 2: // Due to limitations in java, we cannot fully support 8 bytes of payload length
                 bytes[1] = (byte)127;
                 bytes[9] = (byte)(messageLength&0xFF);
-                bytes[8] = (byte)(messageLength&0xFF00);
-                bytes[7] = (byte)(messageLength&0xFF0000);
-                bytes[6] = (byte)(messageLength&0xFF000000);
+                bytes[8] = (byte)((messageLength&0xFF00) >> 8);
+                bytes[7] = (byte)((messageLength&0xFF0000) >> 16);
+                bytes[6] = (byte)((messageLength&0xFF000000) >> 24);
+
+                for (int i=1; i<10; i++) {
+                    Logger.log("byte"+i+": "+(bytes[i]&0xFF), Logger.WS_PARSE);
+                }
 
                 pointer = 10;
                 break;
             default:
                 break;
         }
+
+        Logger.log("---END---", Logger.WS_PARSE);
 
         // Writing the message as payload data
         for (int i=0; i<messageLength; i++) {
