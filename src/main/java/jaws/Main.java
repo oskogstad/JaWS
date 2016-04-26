@@ -1,9 +1,11 @@
 package jaws;
+
 import java.io.*;
 import java.util.ArrayList;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import org.apache.commons.lang3.*;
 
 public class Main implements WebSocketEventHandler {
@@ -51,7 +53,14 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onMessage(Connection con, String message) {
-        JsonElement jsonElem = jsonParser.parse(message);
+        try {
+            JsonElement jsonElem = jsonParser.parse(message);
+        }
+        catch(JsonParseException e) {
+            Logger.logErr("Failed to parse message "+message+" as JSON", Logger.JSON);
+            return;
+        }
+
         if (jsonElem instanceof JsonObject) {
             JsonObject json = (JsonObject)jsonElem;
 

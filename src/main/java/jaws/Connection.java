@@ -15,6 +15,8 @@ public class Connection extends Thread {
     final Base64.Decoder b64decoder = Base64.getDecoder();
     final JaWS jaws;
 
+    private volatile StringBuilder stringBuilder; // For assembeling fragmented messages
+
     public Connection(JaWS jaws, Socket socket) throws IOException {
         this.jaws = jaws;
         this.socket = socket;
@@ -28,11 +30,6 @@ public class Connection extends Thread {
         while(!Thread.interrupted()) {
             try {
                 Frame f = new Frame(input);
-                for (byte b : f.frameBytes ) {
-                    Logger.log(Integer.toHexString(b), Logger.WS_IO);
-                    Logger.log(b+"\n", Logger.WS_IO);
-
-                }
                 switch(f.opcode) {
                     case PING:
                         output.write(Frame.PONG_FRAME);
@@ -41,8 +38,23 @@ public class Connection extends Thread {
                         this.close();
                         break;
                     case TEXT:
-                        jaws.onMessage(this, f.message);
+                        if(f.fin) {
+                            jaws.onMessage(this, f.message);
+                        }
+                        else {
+                            // Begin fragmented message.
+                            stringBuilder.clear();
+                            stringBuilder.append(f.message);
+                        }
                         break;
+                    case CONTINUATION:
+                        if (f.fin) {
+                            stringBuilder.append(f.message);
+                            jaws.onMessage(this, stringBuilder.toString());
+                        }
+                        else {
+                            stringBuilder.append(f.message);
+                        }
                     default:
                         Logger.log("Unhandled message with opcode "+f.opcode, Logger.WS_IO);
                         break;
