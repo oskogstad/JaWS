@@ -58,15 +58,18 @@ public class Frame {
                 // Read the next 2 bytes as payload length
                 byte[] b = new byte[2];
                 input.read(b, 0, b.length);
-                ByteBuffer buffer = ByteBuffer.wrap(b);
-                payloadLen = buffer.getShort();
+
+                payloadLen |= b[1];
+                payloadLen |= (b[0]<<8);
             }
             else if (payloadLen == 127) {
                 // Read the next 8 bytes as payload length
                 byte[] b = new byte[8];
                 input.read(b, 0, b.length);
-                ByteBuffer buffer = ByteBuffer.wrap(b);
-                payloadLen = buffer.getLong();
+                payloadLen |= b[3];
+                payloadLen |= (b[2]<<8);
+                payloadLen |= (b[1]<<16);
+                payloadLen |= (b[0]<<24);
             }
 
             if (maskBit) {
