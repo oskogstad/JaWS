@@ -51,13 +51,10 @@ public class Main implements WebSocketEventHandler {
 
     @Override
     public void onDisconnect(Connection con) {
-<<<<<<< HEAD
         Logger.log("Connection disconnected", Logger.GENERAL);
-=======
         numberOfConnections--;
         // make json and broadcast change to chat.tilfeldig.info
-        System.out.println("number of con: " + numberOfConnections);
->>>>>>> bad90526e8f1287e343edc52a1513ad5831e706c
+        Logger.log("number of con: " + numberOfConnections, Logger.GENERAL);
     }
 
     public static void main(String[] args) {
