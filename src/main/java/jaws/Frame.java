@@ -45,36 +45,49 @@ public class Frame {
 
     public Frame(DataInputStream input) throws IOException {
             byte[] header = new byte[2];
-            input.read(header, 0, header.length);
-            this.fin = ((int)header[0]&0x80) != 0;
-            boolean maskBit = (((int)header[1])&0x80) != 0;
-            int op = (int)header[0]&0x0F;
-            long payloadLen = ((int)header[1])&0x7F;
+            input.readFully(header);
+            this.fin = ((byte)header[0]&0x80) != 0;
+            boolean maskBit = (((byte)header[1])&0x80) != 0;
+            int op = (byte)header[0]&0x0F;
+            long payloadLen = (byte)(header[1]&0x7F);
 
             this.opcode = OpCode.getOpcode(op);
             //TODO: Handle opcode = null
 
+            int numPayloadbytes = 0;
+            Logger.log("byte1 payload length: "+payloadLen, Logger.WS_PARSE);
             if (payloadLen == 126) {
-                // Read the next 2 bytes as payload length
-                byte[] b = new byte[2];
-                input.read(b, 0, b.length);
-
-                payloadLen |= b[1];
-                payloadLen |= (b[0]<<8);
+                numPayloadbytes = 2;
             }
             else if (payloadLen == 127) {
-                // Read the next 8 bytes as payload length
-                byte[] b = new byte[8];
-                input.read(b, 0, b.length);
-                payloadLen |= b[3];
-                payloadLen |= (b[2]<<8);
-                payloadLen |= (b[1]<<16);
-                payloadLen |= (b[0]<<24);
+                numPayloadbytes = 8;
             }
+
+            if (numPayloadbytes > 0) {
+                byte[] b = new byte[numPayloadbytes];
+                input.readFully(b);
+
+                Logger.log("Constructing complex payload length...", Logger.WS_PARSE);
+
+                // Reverse the array
+                for(int i=0; i<b.length/2; i++) {
+                    byte temp = b[i];
+                    b[i] = b[b.length - i - 1];
+                    b[b.length - i - 1] = temp;
+                }
+
+                payloadLen = 0; // Reset payloadlen
+                for(int i=0; i<b.length; i++) {
+                    Logger.log("\tbyte "+i+" = 0x"+String.format("%02x", b[i]), Logger.WS_PARSE);
+                    Logger.log("Test1: "+(b[i]&0xFF)+", Test2: "+(8*i)+", Test3: "+((b[i]&0xFF) << (8 * i)), Logger.WS_PARSE);
+                    payloadLen |= ((b[i]&0xFF) << (8 * i));
+                }
+            }
+            Logger.log("Message length: "+payloadLen, Logger.WS_PARSE);
 
             if (maskBit) {
                 this.mask = new byte[4];
-                input.read(mask, 0, mask.length);
+                input.readFully(mask);
             }
             else {
                 this.mask = null;
@@ -82,13 +95,13 @@ public class Frame {
 
             // This will fail for messages of size bigger than int max val.
             byte[] payload = new byte[(int)payloadLen];
-            input.read(payload, 0, (int)payloadLen);
+            input.readFully(payload);
 
             if (maskBit) {
                 this.message = decode(payload, this.mask);
             }
             else {
-                this.message = new String(payload);
+                this.message = new String(payload, utf8);
             }
 
             byte[] messageBytes = this.message.getBytes(utf8);

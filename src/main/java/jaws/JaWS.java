@@ -86,6 +86,7 @@ public class JaWS extends Thread {
 
     @Override
     public void run() {
+        if (socketServer == null) return;
         Logger.log("Server now listening on port " + PORT, Logger.GENERAL);
 
         while(running) {
