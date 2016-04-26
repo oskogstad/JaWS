@@ -62,12 +62,14 @@ public class Connection extends Thread {
                         break;
                     default:
                         Logger.log("Unhandled message with opcode "+f.opcode, Logger.WS_IO);
+                        this.close();
                         break;
                 }
             }
             catch(IOException e) {
                 if(!socket.isClosed()) {
                     e.printStackTrace();
+                    this.close();
                 }
                 // else ignore. The connection is closed. All is well
             }
