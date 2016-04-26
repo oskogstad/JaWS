@@ -95,12 +95,8 @@ public class Main implements WebSocketEventHandler {
     }
 
     public static void main(String[] args) {
-<<<<<<< HEAD
         Logger.logLevel = Logger.ALL;
-=======
-        Logger.logLevel = Logger.ALL & ~(Logger.WS_PARSE | Logger.WS_IO);
-
->>>>>>> dd0faa1392d47997273db8ef05a92d65f15e9f61
+        
         new Main();
     }
 }
