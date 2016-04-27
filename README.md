@@ -6,7 +6,7 @@ JaWS is a Java Websocket server implemented as an assignment in a network progra
 It provides a simple, event based interface. All write calls are asynchronous, so JaWS will never hog the main thread.
 Every connection gets a thread for reading, and on write calls, a thread is created to handle the write.
 
-Messages are sent to clients by calling '''send()''' on a Connection object, or '''broadcast()''' on the JaWS object.
+Messages are sent to clients by calling ```send()``` on a Connection object, or ```broadcast()``` on the JaWS object.
 
 Supported WebSocket features
 ----------------------------
