@@ -6,6 +6,15 @@ import java.util.Base64;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
+/**
+ * Connection.java
+ *
+ * Objects of this class is created and managed by a JaWS-object.
+ *
+ * This class will handle a connection to a single client.
+ * Messages recieved from the client is sent to the WebSocketEventHandler registered in the JaWS-object responsible for this class.
+ *
+ */
 public class Connection extends Thread {
 
     final Socket socket;
@@ -79,6 +88,11 @@ public class Connection extends Thread {
         }
     }
 
+    /**
+     * Sends a string message to the client.
+     * This method kicks off a new thread that will handle the actual sending, and return at once.
+     * @param message The message to send
+     */
     public void send(String message) {
         new Thread() {
 
@@ -97,6 +111,10 @@ public class Connection extends Thread {
         }.start();
     }
 
+    /**
+     * Sends a ping-frame to the client.
+     * The sending is asynchronous, just as the send() method
+     */
     public void ping() {
         new Thread() {
 
@@ -114,6 +132,14 @@ public class Connection extends Thread {
         }.start();
     }
 
+    /**
+     * Closes the connection to the client.
+     * If the argument <code>reason</code> is not null, a last CONNECTION_CLOSE frame is sent to the client
+     * before the socket is closed, with the argument as reason for the connection close.
+     * This sending is not asynchronous, so the socket is not closed before the message either sent, or an exception is thrown.
+     * If an exception is thrown when trying to send the close frame, it is ignored, and we proceed to close the connection.
+     * @param reason The reason for the close, to send to the client. If null, we send nothing.
+     */
     public void close(String reason) {
         try {
             if(reason != null){

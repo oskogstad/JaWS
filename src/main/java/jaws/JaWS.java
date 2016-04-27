@@ -7,6 +7,19 @@ import java.io.*;
 import java.util.*;
 import java.security.*;
 
+/**
+ * JaWS.java
+ *
+ * A simple Websocket server.
+ * Objects of this class starts a thread that will listen for, and connect new clients.
+ * To recieve anything from any of the connections, you have to register an WebSocketEventHandler. The recomended way to do this is:<br>
+ * <code>
+ * JaWS jawsServer = new JaWS(PORT);<br>
+ * jawsServer.setEventHandler(handler);<br>
+ * jawsServer.start();<br>
+ * </code>
+ * This way you don't risk loosing any messages.
+ */
 public class JaWS extends Thread {
     private final int PORT;
     private final String GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -18,6 +31,9 @@ public class JaWS extends Thread {
 
     private volatile boolean running = true;
 
+    /**
+     * @param port The transport layer port to listen on
+     */
     public JaWS(int port) {
         this.PORT = port;
         socketServer = null;
@@ -65,6 +81,11 @@ public class JaWS extends Thread {
         }
     }
 
+    /**
+     * Close the server.
+     * This will first close all connections, so the event handler will recieve one onDisconnect-call for each.
+     * Finally, the server socket will be closed. This object should not be used after this.
+     */
     public synchronized void close() {
         try {
             running = false;
@@ -82,11 +103,25 @@ public class JaWS extends Thread {
     }
 
 
+    /**
+     * Broadcast a message to all connected clients.
+     * @param message The message to send.
+     */
     public void broadcast(String message) {
         synchronized(connections) {
             for (Connection c : connections) {
                 c.send(message);
             }
+        }
+    }
+
+    /**
+     * Get the number of currently connected clients
+     * @return The number of connected clients
+     */
+    public int getNumberOfConnections() {
+        synchronized(connections) {
+            return connections.size();
         }
     }
 
@@ -184,7 +219,12 @@ public class JaWS extends Thread {
         }
     }
 
+    /**
+     * Set the event handler that will recieve all messages coming from clients connected to this JaWS-object
+     * @param eh The event handler.
+     */
     public void setEventHandler(WebSocketEventHandler eh) {
         this.eventHandler = eh;
     }
 }
+
