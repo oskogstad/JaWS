@@ -59,6 +59,12 @@ public class JaWS extends Thread {
         }
     }
 
+    synchronized void onPong(Connection con) {
+        if (eventHandler != null) {
+            eventHandler.onPong(con);
+        }
+    }
+
     public synchronized void close() {
         try {
             running = false;
@@ -66,7 +72,7 @@ public class JaWS extends Thread {
             // Close all threads
             synchronized(connections) {
                 for (int i=0; i<connections.size(); i++) {
-                    connections.get(i).close(true);
+                    connections.get(i).close("Server shutting down");
                 }
             }
             socketServer.close();
@@ -118,7 +124,7 @@ public class JaWS extends Thread {
                 for (String line : httpReq) {
                     String[] parts = line.split(": ");
                     if (parts.length == 1) {
-                        // Should we check the GET ... line here?
+                        // Ignore the 'GET...' line
                     }
                     else {
                         String key = parts[0];

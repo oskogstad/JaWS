@@ -1,4 +1,4 @@
-package jaws;
+package chroom;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -7,6 +7,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import org.apache.commons.lang3.*;
+
+import jaws.*;
 
 public class Main implements WebSocketEventHandler {
     private JaWS jaws;
@@ -106,6 +108,11 @@ public class Main implements WebSocketEventHandler {
         jaws.broadcast(json.toString());
 
         Logger.log("Number of connections: " + numberOfConnections, Logger.GENERAL);
+    }
+
+    @Override
+    public void onPong(Connection con) {
+
     }
 
     public void writeToChatlog(String text) {

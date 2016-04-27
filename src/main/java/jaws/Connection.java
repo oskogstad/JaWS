@@ -32,10 +32,13 @@ public class Connection extends Thread {
                 Frame f = new Frame(input);
                 switch(f.opcode) {
                     case PING:
-                        output.write(Frame.PONG_FRAME);
+                        output.write(Frame.getPongFrame(f.messageBytes));
+                        break;
+                    case PONG:
+                        jaws.onPong(this);
                         break;
                     case CONNECTION_CLOSE:
-                        this.close(false);
+                        this.close(null);
                         break;
                     case TEXT:
                         if(f.fin) {
@@ -62,14 +65,14 @@ public class Connection extends Thread {
                         break;
                     default:
                         Logger.log("Unhandled message with opcode "+f.opcode, Logger.WS_IO);
-                        this.close(true);
+                        this.close("Server has not implemented opcode "+f.opcode);
                         break;
                 }
             }
             catch(IOException e) {
                 if(!socket.isClosed()) {
                     e.printStackTrace();
-                    this.close(true);
+                    this.close("Internal server error");
                 }
                 // else ignore. The connection is closed. All is well
             }
@@ -94,11 +97,28 @@ public class Connection extends Thread {
         }.start();
     }
 
-    public void close(boolean sendClose) {
+    public void ping() {
+        new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    Logger.log("Pinging client", Logger.WS_IO);
+                    output.write(Frame.PING_FRAME);
+                }
+                catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }.start();
+    }
+
+    public void close(String reason) {
         try {
-            if(sendClose){
+            if(reason != null){
                 try{
-                    output.write(Frame.CLOSE_FRAME);
+                    output.write(Frame.getCloseFrame(reason));
                 }
                 catch(IOException e){
                     // AH...we tried
@@ -117,3 +137,4 @@ public class Connection extends Thread {
         }
     }
 }
+

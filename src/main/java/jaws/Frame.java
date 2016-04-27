@@ -13,6 +13,8 @@ class Frame {
 
     final String message;
 
+    final byte[] messageBytes;
+
     final int messageLength;
 
     final byte[] frameBytes;
@@ -23,22 +25,13 @@ class Frame {
 
     final boolean fin;
 
-    final static byte[] PONG_FRAME;
+    final static byte[] PING_FRAME;
     static {
-        PONG_FRAME = new byte[3];
-        PONG_FRAME[0] = (byte)0x8A; // Set fin flag (0x80) and opcode PONG (0x0A)
-        PONG_FRAME[1] = (byte)0x01; // Set mask bit to 0 and payload length to 1
-        PONG_FRAME[2] = (byte)'!';  // Set dummy payload to '!'
+        PING_FRAME = new byte[3];
+        PING_FRAME[0] = (byte)0x89; // Set fin flag (0x80) and opcode PING (0x0A)
+        PING_FRAME[1] = (byte)0x01; // Set mask bit to 0 and payload length to 1
+        PING_FRAME[2] = (byte)'!';  // Set dummy payload to '!'
     }
-
-    final static byte[] CLOSE_FRAME;
-    static {
-        CLOSE_FRAME = new byte[3];
-        CLOSE_FRAME[0] = (byte)0x88; // Set fin flag (0x80) and opcode CLOSE (0x08)
-        CLOSE_FRAME[1] = (byte)0x01; // Set mask bit to 0 and payload length to 1
-        CLOSE_FRAME[2] = (byte)'!';  // Set dummy payload to '!'
-    }
-
 
     Frame(String message) {
         this.message = message;
@@ -46,7 +39,7 @@ class Frame {
         this.fin = true;
 
         opcode = OpCode.TEXT;
-        byte[] messageBytes = message.getBytes(utf8);
+        messageBytes = message.getBytes(utf8);
         messageLength = messageBytes.length;
 
         this.frameBytes = pack(messageBytes, this.opcode.code, null);
@@ -113,19 +106,8 @@ class Frame {
                 this.message = new String(payload, utf8);
             }
 
-            byte[] messageBytes = this.message.getBytes(utf8);
+            this.messageBytes = this.message.getBytes(utf8);
             this.messageLength = messageBytes.length;
-
-            int frameBytesLength = 2+this.messageLength;
-            if(maskBit) {
-                frameBytesLength += 4;
-            }
-            if(payloadLen >= 32*1024) {
-                frameBytesLength += 8;
-            }
-            else if (payloadLen >= 126) {
-                frameBytesLength += 2;
-            }
 
             this.frameBytes = pack(messageBytes, op, this.mask);
     }
@@ -138,10 +120,7 @@ class Frame {
        return new String(decoded, utf8);
     }
 
-    private byte[] pack(byte[] messageBytes, int op, byte[] mask) {
-
-        int framelength = 2+messageLength;
-
+    private static byte[] pack(byte[] messageBytes, int op, byte[] mask) {
         /*
          * 0 for single byte length,
          * 1 for 2 bytes,
@@ -149,11 +128,14 @@ class Frame {
          */
         int length = 0;
 
-        if (this.messageLength > 65535) {
+        int messageLen = messageBytes.length;
+        int framelength = 2+messageLen;
+
+        if (messageLen > 65535) {
             length = 2;
             framelength += 8;
         }
-        else if (this.messageLength > 125) {
+        else if (messageLen > 125) {
             length = 1;
             framelength += 2;
         }
@@ -162,11 +144,11 @@ class Frame {
         int pointer = 2; // This will tell us what index in the array we will begin writing the message
 
         // Writing payload length
-        Logger.log("---PACKING PAYLOAD LENGTH "+this.messageLength+"---", Logger.WS_PARSE);
+        Logger.log("---PACKING PAYLOAD LENGTH "+messageLen+"---", Logger.WS_PARSE);
         bytes[0] = (byte)0x81; // 0x80 is the fin flag, 0x01 is opcode TEXT
         switch(length) {
             case 0:
-                bytes[1] = (byte)this.messageLength;
+                bytes[1] = (byte)messageLen;
 
                 Logger.log("byte1: "+(bytes[1]&0xFF), Logger.WS_PARSE);
 
@@ -174,8 +156,8 @@ class Frame {
                 break;
             case 1:
                 bytes[1] = (byte)126;
-                bytes[2] = (byte)(messageLength>>8);
-                bytes[3] = (byte)(messageLength&0xFF);
+                bytes[2] = (byte)(messageLen>>8);
+                bytes[3] = (byte)(messageLen&0xFF);
 
                 for (int i=1; i<4; i++) {
                     Logger.log("byte"+i+": "+(bytes[i]&0xFF), Logger.WS_PARSE);
@@ -185,10 +167,10 @@ class Frame {
                 break;
             case 2: // Due to limitations in java, we cannot fully support 8 bytes of payload length
                 bytes[1] = (byte)127;
-                bytes[9] = (byte)(messageLength&0xFF);
-                bytes[8] = (byte)((messageLength&0xFF00) >> 8);
-                bytes[7] = (byte)((messageLength&0xFF0000) >> 16);
-                bytes[6] = (byte)((messageLength&0xFF000000) >> 24);
+                bytes[9] = (byte)(messageLen&0xFF);
+                bytes[8] = (byte)((messageLen&0xFF00) >> 8);
+                bytes[7] = (byte)((messageLen&0xFF0000) >> 16);
+                bytes[6] = (byte)((messageLen&0xFF000000) >> 24);
 
                 for (int i=1; i<10; i++) {
                     Logger.log("byte"+i+": "+(bytes[i]&0xFF), Logger.WS_PARSE);
@@ -203,7 +185,7 @@ class Frame {
         Logger.log("---END---", Logger.WS_PARSE);
 
         // Writing the message as payload data
-        for (int i=0; i<messageLength; i++) {
+        for (int i=0; i<messageLen; i++) {
             bytes[pointer+i] = messageBytes[i];
         }
 
@@ -215,6 +197,16 @@ class Frame {
         return "WEBSOCKET FRAME:\nOpCode: "+opcode+
             "\nmessage: "+message+
             "\nEND";
+    }
+
+    static byte[] getCloseFrame(String reason) {
+        byte[] messageBytes = reason.getBytes(utf8);
+
+        return pack(messageBytes, OpCode.CONNECTION_CLOSE.code, null);
+    }
+
+    static byte[] getPongFrame(byte[] pingBytes) {
+        return pack(pingBytes, OpCode.PONG.code, null);        
     }
 
     enum OpCode {
