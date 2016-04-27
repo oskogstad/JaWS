@@ -1,23 +1,36 @@
 JaWS
 ====
 
+JaWS is a Java Websocket server implemented as an assignment in a network programming course at NTNU.
 
-JaWS is a Java Websocket Server implemented for an assignment in a network programming course at NTNU.
+It provides a simple, event based interface. All write calls are asynchronous, so JaWS will never hog the main thread.
+Every connection gets a thread for reading, and on write calls, a thread is created to handle the write.
 
-Missing WebSocket support
----------------
-* Binary frames
+Messages are sent to clients by calling '''send()''' on a Connection object, or '''broadcast()''' on the JaWS object.
+
+Supported WebSocket features
+----------------------------
+* Text frames. Tested with strings up to 300MB long
+* Ping/Pong. Not tested
+* Proper closing. Reasons are sent from the server, but reasons sent from the client are ignored.
 * Continuation frames should be supported, but not tested.
 
-Implementation Guide
---------------------
+Missing WebSocket features
+--------------------------
+* Binary frames
 
+Building
+--------
 * Install Java JDK from http://www.oracle.com/technetwork/java/javase/downloads/index.html
 * Install Gradle from http://gradle.org/gradle-download/
 
     - ```gradle build```
 
     - ```gradle javadoc``` if you want javadoc.
+
+
+Implementation Guide
+--------------------
 
 * Simple echo server example, listening on port 40506:
 
