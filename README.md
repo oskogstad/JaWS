@@ -20,6 +20,12 @@ Implementation Guide
     - ```gradle javadoc``` if you want javadoc.
 
 * Simple echo server example, listening on port 40506:
+    - import jaws
+    - implement the interface WebSocketEventHandler
+    - create a JaWS object and give it a port
+    - set the event handler
+    - start JaWS!
+
 ``` java
 import jaws.*;
 public class Main implements WebSocketEventHandler {
