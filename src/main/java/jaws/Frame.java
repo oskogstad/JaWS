@@ -7,23 +7,23 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 
-public class Frame {
+class Frame {
 
-    public final OpCode opcode;
+    final OpCode opcode;
 
-    public final String message;
+    final String message;
 
-    public final int messageLength;
+    final int messageLength;
 
-    public final byte[] frameBytes;
+    final byte[] frameBytes;
 
     private static final Charset utf8 = StandardCharsets.UTF_8;
 
-    public final byte[] mask;
+    final byte[] mask;
 
-    public final boolean fin;
+    final boolean fin;
 
-    public final static byte[] PONG_FRAME;
+    final static byte[] PONG_FRAME;
     static {
         PONG_FRAME = new byte[3];
         PONG_FRAME[0] = (byte)0x8A; // Set fin flag (0x80) and opcode PONG (0x0A)
@@ -31,7 +31,16 @@ public class Frame {
         PONG_FRAME[2] = (byte)'!';  // Set dummy payload to '!'
     }
 
-    public Frame(String message) {
+    final static byte[] CLOSE_FRAME;
+    static {
+        CLOSE_FRAME = new byte[3];
+        CLOSE_FRAME[0] = (byte)0x88; // Set fin flag (0x80) and opcode CLOSE (0x08)
+        CLOSE_FRAME[1] = (byte)0x01; // Set mask bit to 0 and payload length to 1
+        CLOSE_FRAME[2] = (byte)'!';  // Set dummy payload to '!'
+    }
+
+
+    Frame(String message) {
         this.message = message;
         this.mask = null;
         this.fin = true;
@@ -43,7 +52,7 @@ public class Frame {
         this.frameBytes = pack(messageBytes, this.opcode.code, null);
     }
 
-    public Frame(DataInputStream input) throws IOException {
+    Frame(DataInputStream input) throws IOException {
             byte[] header = new byte[2];
             input.readFully(header);
             this.fin = ((byte)header[0]&0x80) != 0;
@@ -218,13 +227,13 @@ public class Frame {
         PONG(10),
         FURTHER_CONTROL_FRAME(11); // 11-15
 
-        public final int code;
+         final int code;
 
         OpCode(int code) {
             this.code = code;
         }
 
-        public static OpCode getOpcode(int code) {
+        static OpCode getOpcode(int code) {
             if (code <= 15 && code >= 0) {
                 if(code == 0) {
                     return CONTINUATION;

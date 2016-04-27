@@ -17,7 +17,7 @@ public class Connection extends Thread {
 
     private volatile StringBuilder stringBuilder; // For assembeling fragmented messages
 
-    public Connection(JaWS jaws, Socket socket) throws IOException {
+    Connection(JaWS jaws, Socket socket) throws IOException {
         this.jaws = jaws;
         this.socket = socket;
 
@@ -35,7 +35,7 @@ public class Connection extends Thread {
                         output.write(Frame.PONG_FRAME);
                         break;
                     case CONNECTION_CLOSE:
-                        this.close();
+                        this.close(false);
                         break;
                     case TEXT:
                         if(f.fin) {
@@ -62,14 +62,14 @@ public class Connection extends Thread {
                         break;
                     default:
                         Logger.log("Unhandled message with opcode "+f.opcode, Logger.WS_IO);
-                        this.close();
+                        this.close(true);
                         break;
                 }
             }
             catch(IOException e) {
                 if(!socket.isClosed()) {
                     e.printStackTrace();
-                    this.close();
+                    this.close(true);
                 }
                 // else ignore. The connection is closed. All is well
             }
@@ -94,8 +94,16 @@ public class Connection extends Thread {
         }.start();
     }
 
-    public void close() {
+    public void close(boolean sendClose) {
         try {
+            if(sendClose){
+                try{
+                    output.write(Frame.CLOSE_FRAME);
+                }
+                catch(IOException e){
+                    // AH...we tried
+                }
+            }
             input.close();
             output.close();
             socket.close();

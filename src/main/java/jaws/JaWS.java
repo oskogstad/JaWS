@@ -40,19 +40,19 @@ public class JaWS extends Thread {
         }
     }
 
-    public synchronized void onMessage(Connection con, String message) {
+    synchronized void onMessage(Connection con, String message) {
         if(eventHandler != null) {
             eventHandler.onMessage(con, message);
         }
     }
 
-    public synchronized void onConnect(Connection con) {
+    synchronized void onConnect(Connection con) {
         if(eventHandler != null) {
             eventHandler.onConnect(con);
         }
     }
 
-    public synchronized void onDisconnect(Connection con) {
+    synchronized void onDisconnect(Connection con) {
         connections.remove(con);
         if(eventHandler != null) {
             eventHandler.onDisconnect(con);
@@ -66,7 +66,7 @@ public class JaWS extends Thread {
             // Close all threads
             synchronized(connections) {
                 for (int i=0; i<connections.size(); i++) {
-                    connections.get(i).close();
+                    connections.get(i).close(true);
                 }
             }
             socketServer.close();
@@ -182,4 +182,3 @@ public class JaWS extends Thread {
         this.eventHandler = eh;
     }
 }
-
