@@ -14,7 +14,4 @@ jar.baseName = 'JaWS'
 
 jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    manifest {
-        attributes 'Main-Class': 'jaws.demo.Main'
-   }
 }
