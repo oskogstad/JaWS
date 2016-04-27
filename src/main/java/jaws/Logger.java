@@ -8,8 +8,8 @@ public class Logger {
     public static final int GENERAL = 0x04;
     public static final int WS_PARSE = 0x08; // Parsing of websocket byte arrays
     public static final int ALL = 0xFF; // Print all. Use as loglevel, not as category
-    
-    public static int logLevel = 0;
+
+    public static int logLevel = GENERAL;
 
     public static void log(String message, int category) {
         if ((logLevel & category) != 0) {
