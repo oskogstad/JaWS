@@ -21,7 +21,6 @@ Implementation Guide
 
 * Simple echo server example, listening on port 40506:
 ``` java
-package jaws.demo;
 import jaws.*;
 public class Main implements WebSocketEventHandler {
     private JaWS jaws;
